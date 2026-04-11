@@ -100,16 +100,10 @@ class AlertSliderDialog(private val context: Context) :
 
         // === Positioning — recalculated on every setState so toggles take immediate effect ===
         window?.let { win ->
-            win.attributes = win.attributes.apply {
-                // Update blur flag based on current glass setting
-                if (glassMode) {
-                    blurBehindRadius = 75
-                    flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
-                } else {
-                    blurBehindRadius = 0
-                    flags = flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
-                }
+            win.setBackgroundBlurRadius(if (glassMode) 60 else 0)
+            win.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
 
+            win.attributes = win.attributes.apply {
                 when {
                     islandMode -> {
                         // Island mode: top-center, just below the status bar
@@ -145,17 +139,24 @@ class AlertSliderDialog(private val context: Context) :
             }
         }
 
-        // === Background: Glassmorphism or system color ===
+        // === Background ===
         val bgDrawable = dialogView.background as? android.graphics.drawable.GradientDrawable
         if (bgDrawable != null) {
             if (glassMode) {
-                bgDrawable.setColor(Color.argb(102, 30, 30, 30))
+                // Semi-transparent so the background blur (set above) is visible through it.
+                bgDrawable.setColor(Color.argb(140, 30, 30, 30))
             } else {
-                val ta = context.obtainStyledAttributes(intArrayOf(android.R.attr.colorBackgroundFloating))
-                bgDrawable.setColor(ta.getColor(0, Color.BLACK))
-                ta.recycle()
+                // Monet-dark: system_neutral2_900 is the deepest Monet-tinted surface color
+                // — appears almost black while adapting to the wallpaper hue (Monet).
+                bgDrawable.setColor(context.getColor(R.color.alert_slider_notification_background))
             }
         }
+
+        // Since the background is always dark, force white for text and icons
+        // so they remain visible regardless of system light/dark mode.
+        textView.setTextColor(Color.WHITE)
+        iconView.setColorFilter(Color.WHITE)
+        emojiView.setTextColor(Color.WHITE)
 
         // === Emoji: 2 Unicode codepoints max ===
         val emojiKey = when (position) {
