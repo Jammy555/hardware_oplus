@@ -26,15 +26,7 @@ class KeyHandler(private val context: Context) : DeviceKeyHandler {
     private val audioManager = context.getSystemService(AudioManager::class.java)!!
     private val notificationManager = context.getSystemService(NotificationManager::class.java)!!
     private val vibrator = context.getSystemService(Vibrator::class.java)!!
-
-    private val packageContext =
-        context.createPackageContext(KeyHandler::class.java.getPackage()!!.name, 0)
-    private val sharedPreferences
-        get() =
-            packageContext.getSharedPreferences(
-                packageContext.packageName + "_preferences",
-                Context.MODE_PRIVATE,
-            )
+    private val resolver = context.contentResolver
 
     private val executorService = Executors.newSingleThreadExecutor()
 
@@ -100,17 +92,23 @@ class KeyHandler(private val context: Context) : DeviceKeyHandler {
         }
     }
 
+    private fun getSystemString(key: String, default: String): String {
+        return Settings.System.getStringForUser(resolver, key, UserHandle.USER_CURRENT) ?: default
+    }
+
+    private fun getSystemInt(key: String, default: Int): Int {
+        return Settings.System.getIntForUser(resolver, key, default, UserHandle.USER_CURRENT)
+    }
+
     private fun handleMode(position: Int, firstRun: Boolean) {
-        val muteMedia = sharedPreferences.getBoolean(MUTE_MEDIA_WITH_SILENT, false)
-        val showDialog = sharedPreferences.getBoolean(SHOW_DIALOG, true)
+        val muteMedia = getSystemInt(MUTE_MEDIA_WITH_SILENT, 0) != 0
+        val showDialog = getSystemInt(SHOW_DIALOG, 1) != 0
 
         val mode =
             when (position) {
-                POSITION_TOP -> sharedPreferences.getString(ALERT_SLIDER_TOP_KEY, "0")!!.toInt()
-                POSITION_MIDDLE ->
-                    sharedPreferences.getString(ALERT_SLIDER_MIDDLE_KEY, "1")!!.toInt()
-                POSITION_BOTTOM ->
-                    sharedPreferences.getString(ALERT_SLIDER_BOTTOM_KEY, "2")!!.toInt()
+                POSITION_TOP -> getSystemString(ALERT_SLIDER_TOP_KEY, "0").toInt()
+                POSITION_MIDDLE -> getSystemString(ALERT_SLIDER_MIDDLE_KEY, "1").toInt()
+                POSITION_BOTTOM -> getSystemString(ALERT_SLIDER_BOTTOM_KEY, "2").toInt()
                 else -> return
             }
 

@@ -34,6 +34,18 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
         emojiMiddlePref = findPreference("config_emoji_middle")!!
         emojiBottomPref = findPreference("config_emoji_bottom")!!
 
+        // Restore position values from Settings.System
+        val resolver = requireContext().contentResolver
+        Settings.System.getString(resolver, "config_top_position")?.let { topPositionPref.value = it }
+        Settings.System.getString(resolver, "config_middle_position")?.let { middlePositionPref.value = it }
+        Settings.System.getString(resolver, "config_bottom_position")?.let { bottomPositionPref.value = it }
+
+        // Restore mute_media and show_dialog from Settings.System
+        findPreference<SwitchPreferenceCompat>("config_mute_media")?.isChecked =
+            Settings.System.getInt(resolver, "config_mute_media", 0) != 0
+        findPreference<SwitchPreferenceCompat>("config_show_dialog")?.isChecked =
+            Settings.System.getInt(resolver, "config_show_dialog", 1) != 0
+
         topPositionPref.onPreferenceChangeListener = this
         middlePositionPref.onPreferenceChangeListener = this
         bottomPositionPref.onPreferenceChangeListener = this
@@ -41,12 +53,13 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
         findPreference<SwitchPreferenceCompat>("config_alert_slider_island")?.onPreferenceChangeListener = this
         findPreference<SwitchPreferenceCompat>("config_alert_slider_glass")?.onPreferenceChangeListener = this
         findPreference<SwitchPreferenceCompat>("config_alert_slider_hide_label")?.onPreferenceChangeListener = this
+        findPreference<SwitchPreferenceCompat>("config_mute_media")?.onPreferenceChangeListener = this
+        findPreference<SwitchPreferenceCompat>("config_show_dialog")?.onPreferenceChangeListener = this
         emojiTopPref.onPreferenceChangeListener = this
         emojiMiddlePref.onPreferenceChangeListener = this
         emojiBottomPref.onPreferenceChangeListener = this
 
-        // Restore switch states from Settings.System (since SharedPreferences doesn't have these)
-        val resolver = requireContext().contentResolver
+        // Restore switch states from Settings.System
         findPreference<SwitchPreferenceCompat>("config_alert_slider_island")?.isChecked =
             Settings.System.getInt(resolver, "config_alert_slider_island", 0) != 0
         findPreference<SwitchPreferenceCompat>("config_alert_slider_glass")?.isChecked =
@@ -96,8 +109,14 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
                     Toast.makeText(requireContext(), R.string.alert_slider_action_already_mapped, Toast.LENGTH_SHORT).show()
                     return false
                 }
+                // Write to Settings.System for instant cross-process access
+                Settings.System.putString(resolver, preference.key, value)
             }
             "config_alert_slider_island", "config_alert_slider_glass", "config_alert_slider_hide_label" -> {
+                val value = if (newValue as Boolean) 1 else 0
+                Settings.System.putInt(resolver, preference.key, value)
+            }
+            "config_mute_media", "config_show_dialog" -> {
                 val value = if (newValue as Boolean) 1 else 0
                 Settings.System.putInt(resolver, preference.key, value)
             }
