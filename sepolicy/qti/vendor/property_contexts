@@ -8,6 +8,8 @@ persist.vendor.btstack.        u:object_r:vendor_bluetooth_prop:s0
 # Camera
 ro.vendor.camera.res.          u:object_r:vendor_camera_prop:s0
 ro.vendor.oplus.camera.        u:object_r:vendor_camera_prop:s0
+ro.vendor.opcamera.            u:object_r:vendor_camera_prop:s0
+ro.vendor.oplus.system.camera. u:object_r:vendor_camera_prop:s0
 vendor.camera.vm.parameters    u:object_r:vendor_camera_prop:s0
 vendor.oplus.camera.           u:object_r:vendor_camera_prop:s0
 vendor.oppo.camera.            u:object_r:vendor_camera_prop:s0

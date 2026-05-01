@@ -51,3 +51,6 @@ allow system_app hal_power_default:binder call;
 allow system_app hal_sensors_default:binder call;
 allow system_app hal_thermal_default:binder call;
 allow system_app vendor_hal_usb_qti:binder call;
+
+allow system_app proc_stat:file { read open getattr };
+allow system_app vendor_sysfs_kgsl:file { read open getattr };
