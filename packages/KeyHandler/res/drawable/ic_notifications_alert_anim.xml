@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0
+     Priority bell animation:
+     - Bell body swings left-right like a pendulum
+     - Sound waves pulse in opacity
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_notifications_alert">
+    <target android:name="bell_body">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set android:ordering="sequentially">
+                <objectAnimator android:propertyName="rotation"
+                    android:valueFrom="0" android:valueTo="-8"
+                    android:duration="100"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+                <objectAnimator android:propertyName="rotation"
+                    android:valueFrom="-8" android:valueTo="7"
+                    android:duration="120"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+                <objectAnimator android:propertyName="rotation"
+                    android:valueFrom="7" android:valueTo="-5"
+                    android:duration="110"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+                <objectAnimator android:propertyName="rotation"
+                    android:valueFrom="-5" android:valueTo="3"
+                    android:duration="100"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                <objectAnimator android:propertyName="rotation"
+                    android:valueFrom="3" android:valueTo="0"
+                    android:duration="120"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="waves">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set android:ordering="together">
+                <objectAnimator android:propertyName="alpha"
+                    android:valueFrom="0.3" android:valueTo="1"
+                    android:duration="250"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                <objectAnimator android:propertyName="scaleX"
+                    android:valueFrom="0.7" android:valueTo="1"
+                    android:duration="300"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                <objectAnimator android:propertyName="scaleY"
+                    android:valueFrom="0.7" android:valueTo="1"
+                    android:duration="300"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

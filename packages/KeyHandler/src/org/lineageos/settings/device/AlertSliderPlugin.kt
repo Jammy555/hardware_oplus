@@ -38,8 +38,8 @@ class AlertSliderPlugin : OverlayPlugin {
                     }
                     KeyHandler.CHANGED_ACTION -> {
                         synchronized(dialogLock) {
-                            val ringer =
-                                intent.getIntExtra("mode", NONE).takeIf { it != NONE } ?: return
+                            if (!intent.hasExtra("mode")) return
+                            val ringer = intent.getIntExtra("mode", NONE)
 
                             handler
                                 .obtainMessage(
@@ -98,9 +98,12 @@ class AlertSliderPlugin : OverlayPlugin {
                             handleResetTimeout()
                             launchDozePulse()
                             dialog.show()
+                            dialog.refreshBlur()
                         } else {
                             dialog.dismiss()
                         }
+                    } else if (value) {
+                        dialog.refreshBlur()
                     }
 
                     field = value

@@ -9,16 +9,23 @@
 package org.lineageos.settings.device
 
 import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.drawable.Animatable2
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.media.AudioManager
+import android.provider.Settings
 import android.view.Gravity
 import android.view.Surface
+import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
@@ -33,6 +40,7 @@ class AlertSliderDialog(private val context: Context) :
     private val frameView by lazy { findViewById<ViewGroup>(R.id.alert_slider_view)!! }
     private val iconView by lazy { findViewById<ImageView>(R.id.alert_slider_icon)!! }
     private val textView by lazy { findViewById<TextView>(R.id.alert_slider_text)!! }
+    private val emojiView by lazy { findViewById<TextView>(R.id.alert_slider_emoji_view)!! }
 
     private val rotation: Int = context.getDisplay().getRotation()
     private val isLandscape = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270
@@ -44,6 +52,7 @@ class AlertSliderDialog(private val context: Context) :
 
     private var isAnimating = false
     private var animator = ValueAnimator()
+    private var isBlurEnabled = false
 
     init {
         window?.let {
@@ -71,22 +80,22 @@ class AlertSliderDialog(private val context: Context) :
         setCanceledOnTouchOutside(false)
         setContentView(R.layout.alert_slider_dialog)
 
-        // position calculations
         val res = context.resources
         val fraction = res.getFraction(R.fraction.alert_slider_dialog_y, 1, 1)
         val widthPixels = res.displayMetrics.widthPixels
         val heightPixels = res.displayMetrics.heightPixels
-        val pads = dialogView.paddingTop * 2 // equal paddings in all 4 directions
+        val pads = dialogView.paddingTop * 2
         length =
             if (isLandscape) res.getDimension(R.dimen.alert_slider_dialog_width).toInt()
             else res.getDimension(R.dimen.alert_slider_dialog_height).toInt()
         val hv = (length + pads) * 0.5
 
+        val marginPx = res.getDimensionPixelSize(R.dimen.alert_slider_container_padding)
         xPos =
             if (isLandscape) (widthPixels * fraction - hv).toInt()
-            else if (flip) 0 else widthPixels / 100
+            else marginPx
         yPos =
-            if (isLandscape) (if (flip) (widthPixels / 100) else 0)
+            if (isLandscape) marginPx
             else (heightPixels * fraction - hv).toInt()
 
         window?.let {
@@ -107,155 +116,225 @@ class AlertSliderDialog(private val context: Context) :
                                 if (flip) Gravity.BOTTOM or Gravity.LEFT
                                 else Gravity.TOP or Gravity.LEFT
                         }
-
                     x = xPos
                     y = yPos
                 }
         }
     }
 
+    fun refreshBlur() {
+        window?.let {
+            it.setBackgroundBlurRadius(if (isBlurEnabled) BLUR_RADIUS else 0)
+            it.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+        }
+    }
+
     @Synchronized
     fun setState(position: Int, ringerMode: Int) {
+        val resolver = context.contentResolver
+        val islandMode = Settings.System.getInt(resolver, "config_alert_slider_island", 0) != 0
+        val blurPopup = Settings.System.getInt(resolver, "config_alert_slider_glass", 0) != 0
+        val hideLabel = Settings.System.getInt(resolver, "config_alert_slider_hide_label", 0) != 0
+        isBlurEnabled = blurPopup
+        refreshBlur()
+
+        applyUiContent(position, ringerMode, hideLabel, blurPopup)
+
         val delta =
             length *
                 when (position) {
                     KeyHandler.POSITION_TOP -> -1
                     KeyHandler.POSITION_BOTTOM -> 1
-                    else -> 0 // KeyHandler.POSITION_MIDDLE
+                    else -> 0
                 }
 
-        var endX = xPos
-        var endY = yPos
-        if (isLandscape) endX += delta else endY += delta
-
-        if (isShowing) {
-            animatePosition(endX, endY, position, ringerMode)
-        } else {
-            applyUiMode(ringerMode)
-            applyPositionAndBackground(endX, endY, position)
-        }
-    }
-
-    @Synchronized
-    private fun animatePosition(endX: Int, endY: Int, position: Int, ringerMode: Int) {
-        if (isAnimating) animator.cancel()
-        animator = ValueAnimator()
-        animator.duration = 100
-        animator.interpolator = OvershootInterpolator()
-
-        window?.let {
-            animator.setValues(
-                PropertyValuesHolder.ofInt("x", it.attributes.x, endX),
-                PropertyValuesHolder.ofInt("y", it.attributes.y, endY),
-            )
-        }
-
-        animator.addUpdateListener { animation ->
+        if (islandMode) {
+            val statusBarHeight = run {
+                val resId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+                if (resId > 0) context.resources.getDimensionPixelSize(resId) else 96
+            }
+            val islandMarginPx = context.resources.getDimensionPixelSize(R.dimen.alert_slider_container_padding)
             window?.let {
-                it.attributes =
-                    it.attributes.apply {
-                        x = animation.getAnimatedValue("x") as Int
-                        y = animation.getAnimatedValue("y") as Int
+                it.attributes = it.attributes.apply {
+                    gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+                    x = 0
+                    y = statusBarHeight + (islandMarginPx / 2)
+                }
+            }
+            dialogView.background = null
+            frameView.background = null
+        } else {
+            dialogView.background = null
+            frameView.background = null
+            window?.let {
+                it.attributes = it.attributes.apply {
+                    gravity = when (rotation) {
+                        Surface.ROTATION_0 -> if (flip) Gravity.TOP or Gravity.LEFT else Gravity.TOP or Gravity.RIGHT
+                        Surface.ROTATION_90 -> if (flip) Gravity.BOTTOM or Gravity.LEFT else Gravity.TOP or Gravity.LEFT
+                        Surface.ROTATION_270 -> if (flip) Gravity.TOP or Gravity.RIGHT else Gravity.BOTTOM or Gravity.RIGHT
+                        else -> if (flip) Gravity.BOTTOM or Gravity.LEFT else Gravity.TOP or Gravity.LEFT
                     }
+                    x = xPos + if (isLandscape) delta else 0
+                    y = yPos + if (isLandscape) 0 else delta
+                }
             }
         }
 
-        animator.addListener(
-            object : Animator.AnimatorListener {
-                override fun onAnimationStart(animation: Animator) {
-                    isAnimating = true
-                    applyUiMode(ringerMode)
-                }
-
-                override fun onAnimationEnd(animation: Animator) {
-                    applyPositionAndBackground(endX, endY, position)
-                    isAnimating = false
-                }
-
-                override fun onAnimationCancel(animation: Animator) {}
-
-                override fun onAnimationRepeat(animation: Animator) {}
+        val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val bgDrawable = context.getDrawable(R.drawable.alert_slider_bg)?.mutate() as? android.graphics.drawable.GradientDrawable
+        if (bgDrawable != null) {
+            if (blurPopup) {
+                bgDrawable.setColor(if (nightMode) Color.argb(120, 30, 30, 40) else Color.argb(120, 255, 255, 255))
+            } else {
+                bgDrawable.setColor(if (nightMode) Color.parseColor("#1A1A1A") else Color.WHITE)
             }
-        )
-        animator.start()
-    }
-
-    private fun applyUiMode(ringerMode: Int) {
-        iconView.setImageResource(
-            when (ringerMode) {
-                AudioManager.RINGER_MODE_SILENT -> R.drawable.ic_volume_ringer_mute
-                AudioManager.RINGER_MODE_VIBRATE -> R.drawable.ic_volume_ringer_vibrate
-                AudioManager.RINGER_MODE_NORMAL -> R.drawable.ic_volume_ringer
-                KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert
-                KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence
-                KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm
-                else -> R.drawable.ic_info
-            }
-        )
-
-        textView.setText(
-            when (ringerMode) {
-                AudioManager.RINGER_MODE_SILENT -> R.string.alert_slider_mode_silent
-                AudioManager.RINGER_MODE_VIBRATE -> R.string.alert_slider_mode_vibration
-                AudioManager.RINGER_MODE_NORMAL -> R.string.alert_slider_mode_normal
-                KeyHandler.ZEN_PRIORITY_ONLY -> R.string.alert_slider_mode_dnd_priority_only
-                KeyHandler.ZEN_TOTAL_SILENCE -> R.string.alert_slider_mode_dnd_total_silence
-                KeyHandler.ZEN_ALARMS_ONLY -> R.string.alert_slider_mode_dnd_alarms_only
-                else -> R.string.alert_slider_mode_none
-            }
-        )
-        textView.setTextColor(context.getColor(R.color.alert_slider_text_color))
-    }
-
-    private fun applyPositionAndBackground(endX: Int, endY: Int, position: Int) {
-        window?.let {
-            it.attributes =
-                it.attributes.apply {
-                    x = endX
-                    y = endY
-                }
+            window?.setBackgroundDrawable(bgDrawable)
         }
-        frameView.setBackgroundResource(backgroundFor(rotation, position, flip))
+
+
+        if (hideLabel) {
+            textView.visibility = View.GONE
+        } else {
+            textView.visibility = View.VISIBLE
+            textView.setText(
+                when (ringerMode) {
+                    AudioManager.RINGER_MODE_SILENT -> R.string.alert_slider_mode_silent
+                    AudioManager.RINGER_MODE_VIBRATE -> R.string.alert_slider_mode_vibration
+                    AudioManager.RINGER_MODE_NORMAL -> R.string.alert_slider_mode_normal
+                    KeyHandler.ZEN_PRIORITY_ONLY -> R.string.alert_slider_mode_dnd_priority_only
+                    KeyHandler.ZEN_TOTAL_SILENCE -> R.string.alert_slider_mode_dnd_total_silence
+                    KeyHandler.ZEN_ALARMS_ONLY -> R.string.alert_slider_mode_dnd_alarms_only
+                    else -> R.string.alert_slider_mode_none
+                }
+            )
+            val textColor = if (blurPopup) {
+                if (nightMode) Color.WHITE else Color.parseColor("#1A1A1A")
+            } else {
+                if (nightMode) Color.WHITE else Color.BLACK
+            }
+            textView.setTextColor(textColor)
+        }
     }
 
-    private fun backgroundFor(rotation: Int, position: Int, flip: Boolean): Int {
-        fun base(position: Int): Int =
-            when (position) {
-                KeyHandler.POSITION_TOP ->
-                    if (flip) R.drawable.alert_slider_top_flip else R.drawable.alert_slider_top
-                KeyHandler.POSITION_MIDDLE -> R.drawable.alert_slider_middle
-                KeyHandler.POSITION_BOTTOM ->
-                    if (flip) R.drawable.alert_slider_bottom_flip
-                    else R.drawable.alert_slider_bottom
-                else -> R.drawable.alert_slider_middle
-            }
 
-        return when (rotation) {
-            Surface.ROTATION_90 ->
-                when (position) {
-                    KeyHandler.POSITION_TOP ->
-                        if (flip) R.drawable.alert_slider_top_90_flip
-                        else R.drawable.alert_slider_top_90
-                    KeyHandler.POSITION_BOTTOM ->
-                        if (flip) R.drawable.alert_slider_bottom_90_flip
-                        else R.drawable.alert_slider_bottom_90
-                    else -> R.drawable.alert_slider_middle
-                }
-            Surface.ROTATION_270 ->
-                when (position) {
-                    KeyHandler.POSITION_TOP ->
-                        if (flip) R.drawable.alert_slider_top_270_flip
-                        else R.drawable.alert_slider_top_270
-                    KeyHandler.POSITION_BOTTOM ->
-                        if (flip) R.drawable.alert_slider_bottom_270_flip
-                        else R.drawable.alert_slider_bottom_270
-                    else -> R.drawable.alert_slider_middle
-                }
-            else -> base(position) // ROTATION_0 / ROTATION_180
+
+    private fun applyUiContent(position: Int, ringerMode: Int, hideLabel: Boolean, blurActive: Boolean) {
+        val resolver = context.contentResolver
+        val posKey = when (position) {
+            KeyHandler.POSITION_TOP -> "top"
+            KeyHandler.POSITION_MIDDLE -> "middle"
+            KeyHandler.POSITION_BOTTOM -> "bottom"
+            else -> null
+        }
+
+        val rawEmoji = posKey?.let { Settings.System.getString(resolver, "config_emoji_$it") }
+        val emoji = rawEmoji?.takeIf { it.isNotEmpty() }
+
+        (iconView.drawable as? AnimatedVectorDrawable)?.stop()
+
+        when {
+            emoji != null -> {
+                iconView.visibility = View.GONE
+                emojiView.visibility = View.VISIBLE
+                emojiView.text = emoji
+                animateEmoji(emojiView)
+            }
+            else -> {
+                emojiView.visibility = View.GONE
+                iconView.visibility = View.VISIBLE
+                applyDefaultIcon(ringerMode, blurActive)
+            }
+        }
+    }
+
+    private fun applyDefaultIcon(ringerMode: Int, blurActive: Boolean) {
+        val animDrawableRes = when (ringerMode) {
+            AudioManager.RINGER_MODE_VIBRATE -> R.drawable.ic_volume_ringer_vibrate_anim
+            AudioManager.RINGER_MODE_NORMAL -> R.drawable.ic_volume_ringer_anim
+            AudioManager.RINGER_MODE_SILENT -> R.drawable.ic_volume_ringer_mute_anim
+            KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert_anim
+            KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence_anim
+            KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm_anim
+            else -> R.drawable.ic_snow_anim
+        }
+        val staticDrawableRes = when (ringerMode) {
+            AudioManager.RINGER_MODE_SILENT -> R.drawable.ic_volume_ringer_mute
+            AudioManager.RINGER_MODE_VIBRATE -> R.drawable.ic_volume_ringer_vibrate
+            AudioManager.RINGER_MODE_NORMAL -> R.drawable.ic_volume_ringer
+            KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert
+            KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence
+            KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm
+            else -> R.drawable.ic_snow
+        }
+
+        if (animDrawableRes != 0) {
+            iconView.setImageResource(animDrawableRes)
+            // Tint for blur mode readability
+            if (blurActive) {
+                val nightMode = (context.resources.configuration.uiMode
+                    and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+                iconView.setColorFilter(
+                    if (nightMode) Color.WHITE else Color.parseColor("#1A1A1A")
+                )
+            } else {
+                val nightMode = (context.resources.configuration.uiMode
+                    and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+                iconView.setColorFilter(
+                    if (nightMode) Color.WHITE else Color.BLACK
+                )
+            }
+            (iconView.drawable as? AnimatedVectorDrawable)?.let { avd ->
+                avd.clearAnimationCallbacks()
+                avd.registerAnimationCallback(object : Animatable2.AnimationCallback() {
+                    override fun onAnimationEnd(drawable: Drawable) {
+                        iconView.post { avd.start() }
+                    }
+                })
+                avd.start()
+            }
+        } else {
+            iconView.setImageResource(staticDrawableRes)
+            if (blurActive) {
+                val nightMode = (context.resources.configuration.uiMode
+                    and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+                iconView.setColorFilter(
+                    if (nightMode) Color.WHITE else Color.parseColor("#1A1A1A")
+                )
+            } else {
+                val nightMode = (context.resources.configuration.uiMode
+                    and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+                iconView.setColorFilter(
+                    if (nightMode) Color.WHITE else Color.BLACK
+                )
+            }
+        }
+    }
+
+
+
+    private fun animateEmoji(view: TextView) {
+        view.scaleX = 0.4f
+        view.scaleY = 0.4f
+        view.alpha = 0f
+
+        val scaleX = ObjectAnimator.ofFloat(view, "scaleX", 0.4f, 1.15f, 0.95f, 1f)
+        val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0.4f, 1.15f, 0.95f, 1f)
+        val alpha = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f)
+
+        AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            duration = 400
+            interpolator = OvershootInterpolator(1.0f)
+            start()
         }
     }
 
     companion object {
         private const val TAG = "AlertSliderDialog"
+        private const val BLUR_RADIUS = 100
     }
 }
