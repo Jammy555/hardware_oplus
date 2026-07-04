@@ -12,6 +12,8 @@
         <item>Priority Only</item>
         <item>Total Silence</item>
         <item>Alarms Only</item>
+        <item>Torch On</item>
+        <item>Torch Off</item>
     </string-array>
 
     <string-array name="alert_slider_action_entry_values" translatable="false">
@@ -22,6 +24,8 @@
         <item>3</item>
         <item>4</item>
         <item>5</item>
+        <item>8</item>
+        <item>9</item>
     </string-array>
 
 </resources>

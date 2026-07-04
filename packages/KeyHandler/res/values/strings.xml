@@ -27,4 +27,7 @@
     <!-- Help text for custom emoji -->
     <string name="alert_slider_emoji_help">Type an emoji to replace the default icon for each slider position</string>
 </resources>
-
+    <!-- Torch slider modes -->
+    <string name="alert_slider_mode_torch_on">Torch On</string>
+    <string name="alert_slider_mode_torch_off">Torch Off</string>
+</resources>

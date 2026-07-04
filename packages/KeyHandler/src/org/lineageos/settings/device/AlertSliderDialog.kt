@@ -204,6 +204,8 @@ class AlertSliderDialog(private val context: Context) :
                     KeyHandler.ZEN_PRIORITY_ONLY -> R.string.alert_slider_mode_dnd_priority_only
                     KeyHandler.ZEN_TOTAL_SILENCE -> R.string.alert_slider_mode_dnd_total_silence
                     KeyHandler.ZEN_ALARMS_ONLY -> R.string.alert_slider_mode_dnd_alarms_only
+                    KeyHandler.TORCH_ON -> R.string.alert_slider_mode_torch_on
+                    KeyHandler.TORCH_OFF -> R.string.alert_slider_mode_torch_off
                     else -> R.string.alert_slider_mode_none
                 }
             )
@@ -255,6 +257,8 @@ class AlertSliderDialog(private val context: Context) :
             KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert_anim
             KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence_anim
             KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm_anim
+            KeyHandler.TORCH_ON -> R.drawable.ic_torch_on_anim
+            KeyHandler.TORCH_OFF -> R.drawable.ic_torch_off_anim
             else -> R.drawable.ic_snow_anim
         }
         val staticDrawableRes = when (ringerMode) {
@@ -264,6 +268,8 @@ class AlertSliderDialog(private val context: Context) :
             KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert
             KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence
             KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm
+            KeyHandler.TORCH_ON -> R.drawable.ic_torch_on
+            KeyHandler.TORCH_OFF -> R.drawable.ic_torch_off
             else -> R.drawable.ic_snow
         }
 
