@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_torch_on">
+    
+    <target android:name="torch_beam">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set android:ordering="together">
+                <objectAnimator android:propertyName="scaleY"
+                    android:valueFrom="0" android:valueTo="1"
+                    android:duration="250"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator android:propertyName="fillAlpha"
+                    android:valueFrom="0.2" android:valueTo="1"
+                    android:duration="100"
+                    android:repeatCount="5"
+                    android:repeatMode="reverse" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="torch_body">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set android:ordering="sequentially">
+                <objectAnimator android:propertyName="scaleX"
+                    android:valueFrom="1" android:valueTo="1.1"
+                    android:duration="100" />
+                <objectAnimator android:propertyName="scaleX"
+                    android:valueFrom="1.1" android:valueTo="1"
+                    android:duration="150"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

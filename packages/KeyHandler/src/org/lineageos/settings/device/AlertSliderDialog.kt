@@ -258,8 +258,8 @@ class AlertSliderDialog(private val context: Context) :
             KeyHandler.ZEN_PRIORITY_ONLY -> R.drawable.ic_notifications_alert_anim
             KeyHandler.ZEN_TOTAL_SILENCE -> R.drawable.ic_notifications_silence_anim
             KeyHandler.ZEN_ALARMS_ONLY -> R.drawable.ic_alarm_anim
-            KeyHandler.TORCH_ON,
-            KeyHandler.TORCH_OFF -> 0
+            KeyHandler.TORCH_ON -> R.drawable.ic_torch_on_anim
+            KeyHandler.TORCH_OFF -> R.drawable.ic_torch_off_anim
             else -> R.drawable.ic_snow_anim
         }
         val staticDrawableRes = when (ringerMode) {
