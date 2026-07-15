@@ -26,6 +26,7 @@ public class OplusSmoothRoundedManager {
     }
 
     public static float getDefaultWeight() {
+
         return DEFAULT_G1_WEIGHT;
     }
 
