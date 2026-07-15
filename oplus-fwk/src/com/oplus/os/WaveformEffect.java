@@ -52,17 +52,23 @@ public class WaveformEffect implements Parcelable {
         private int mEffectType;
         private boolean mEffectLoop;
         private boolean mStrengthSettingEnabled;
+        private int mEffectStrength;
+        private boolean mAsynchronous;
 
         public Builder() {
             mEffectType = -1;
             mEffectLoop = false;
             mStrengthSettingEnabled = false;
+            mEffectStrength = 0;
+            mAsynchronous = false;
         }
 
         public Builder(WaveformEffect effect) {
             mEffectType = -1;
             mEffectLoop = false;
             mStrengthSettingEnabled = false;
+            mEffectStrength = 0;
+            mAsynchronous = false;
         }
 
         public WaveformEffect build() {
@@ -85,6 +91,16 @@ public class WaveformEffect implements Parcelable {
 
         public Builder setStrengthSettingEnabled(boolean enabled) {
             mStrengthSettingEnabled = enabled;
+            return this;
+        }
+
+        public Builder setEffectStrength(int strength) {
+            mEffectStrength = strength;
+            return this;
+        }
+
+        public Builder setAsynchronous(boolean asynchronous) {
+            mAsynchronous = asynchronous;
             return this;
         }
     }

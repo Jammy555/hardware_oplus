@@ -1,8 +1,8 @@
 package com.oplus.dynamicframerate;
 
+import android.os.Bundle;
 import android.view.SurfaceControl;
 import android.view.View;
-import com.oplus.wrapper.os.Bundle;
 
 /* JADX INFO: loaded from: classes.dex */
 public class DynamicFrameRateManager {
@@ -17,11 +17,11 @@ public class DynamicFrameRateManager {
     private DynamicFrameRateManager() {
     }
 
-    public static boolean setFrameRate(View view, int frameRate, Bundle bundle) {
+    public static boolean setFrameRate(View view, int frameRate, android.os.Bundle bundle) {
         return true;
     }
 
-    public static boolean setFrameRate(SurfaceControl surfaceControl, SurfaceControl.Transaction transaction, int frameRate, Bundle bundle) {
+    public static boolean setFrameRate(SurfaceControl surfaceControl, SurfaceControl.Transaction transaction, int frameRate, android.os.Bundle bundle) {
         return true;
     }
 

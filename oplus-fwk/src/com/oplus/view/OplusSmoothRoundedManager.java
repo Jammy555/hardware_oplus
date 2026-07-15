@@ -2,7 +2,6 @@ package com.oplus.view;
 
 import android.os.SystemProperties;
 import android.util.MathUtils;
-import com.oplus.os.WaveformEffect;
 
 public class OplusSmoothRoundedManager {
     public static final float FULL_RRECT_G2_WEIGHT = 1.0f;
@@ -16,7 +15,7 @@ public class OplusSmoothRoundedManager {
     private static final float DEFAULT_G2_WEIGHT =
             SystemProperties.getInt(
                     "persist.sys.oplus.default_g2_weight",
-                    WaveformEffect.EFFECT_ALARM_INTERESTING) / 100.0f;
+                    170) / 100.0f;
     private static final int ANIM_LEVEL = 3;
     private static final int UPGRADE_ANIM_LEVEL =
             SystemProperties.getInt("persist.sys.oplus.upgrade_anim_level", 3);
