@@ -5,6 +5,8 @@ import android.os.IBinder;
 import android.os.IInterface;
 
 public interface IOplusTaskInfoChangeListener extends IInterface {
+    void onVisibleTasksInfoChange(java.util.List<?> tasks) throws android.os.RemoteException;
+
     public static abstract class Stub extends Binder implements IOplusTaskInfoChangeListener {
         public Stub() {
             this.attachInterface(this, "com.oplus.app.IOplusTaskInfoChangeListener");
@@ -13,5 +15,7 @@ public interface IOplusTaskInfoChangeListener extends IInterface {
         public IBinder asBinder() {
             return this;
         }
+        @Override
+        public void onVisibleTasksInfoChange(java.util.List<?> tasks) {}
     }
 }
