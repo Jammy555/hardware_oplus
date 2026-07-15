@@ -6,7 +6,6 @@ import android.os.Parcel;
 import android.os.RemoteException;
 import com.oplus.app.OplusAppInfo;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /* loaded from: classes.dex */
@@ -87,19 +86,5 @@ public class OplusActivityTaskManager extends OplusBaseActivityTaskManager imple
             data.recycle();
             reply.recycle();
         }
-    }
-
-    public List getVisibleTasks(int displayId) {
-        return Collections.emptyList();
-    }
-
-    public boolean registerTaskInfoChangeListener(
-            com.oplus.app.OplusTaskInfoChangeListener listener, int flags, int displayId) {
-        return false;
-    }
-
-    public boolean unregisterTaskInfoChangeListener(
-            com.oplus.app.OplusTaskInfoChangeListener listener) {
-        return false;
     }
 }

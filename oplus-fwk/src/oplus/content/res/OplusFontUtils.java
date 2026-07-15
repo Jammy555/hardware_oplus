@@ -1,5 +1,6 @@
 package oplus.content.res;
 
-public final class OplusFontUtils {
-    private OplusFontUtils() {}
+/* loaded from: classes.dex */
+public class OplusFontUtils {
+    public static boolean isFlipFontUsed = false;
 }

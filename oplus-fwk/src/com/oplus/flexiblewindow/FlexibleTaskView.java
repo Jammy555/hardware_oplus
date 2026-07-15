@@ -35,15 +35,4 @@ public class FlexibleTaskView extends SurfaceView {
         default void onBackPressedOnTaskRoot(int taskId) {}
         default void updateTouchRegion(Region region) {}
     }
-
-    public void setListener(java.util.concurrent.Executor executor, Listener listener) {}
-
-    public void release() {}
-
-    public void resize(Rect rect) {}
-
-    @Override
-    public void setVisibility(int visibility) {
-        super.setVisibility(visibility);
-    }
 }

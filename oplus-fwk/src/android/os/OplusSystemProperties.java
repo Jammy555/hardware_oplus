@@ -3,7 +3,7 @@ package android.os;
 public class OplusSystemProperties {
 
     public static String get(String key) {
-        return SystemProperties.get(key);
+        return SystemProperties.get(key, "");
     }
 
     public static String get(String key, String def) {
@@ -16,9 +16,5 @@ public class OplusSystemProperties {
 
     public static boolean getBoolean(String key, boolean def) {
         return SystemProperties.getBoolean(key, def);
-    }
-
-    public static long getLong(String key, long def) {
-        return SystemProperties.getLong(key, def);
     }
 }
