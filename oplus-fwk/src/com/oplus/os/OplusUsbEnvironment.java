@@ -281,7 +281,8 @@ public class OplusUsbEnvironment extends Environment {
                     }
                 }
             }
-        } catch (RemoteException e) {
+        } catch (Exception e) {
+            Log.e(TAG, "getVolumes failed", e);
         }
     }
 

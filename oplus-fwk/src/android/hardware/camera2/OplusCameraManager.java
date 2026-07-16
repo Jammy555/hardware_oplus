@@ -507,6 +507,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeString(packageName);
                 this.mRemote.transact(10001, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "addAuthResultInfo failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -526,6 +528,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeStrongBinder(client);
                 this.mRemote.transact(10002, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setDeathRecipient failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -546,14 +550,14 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 this.mRemote.transact(10004, data, reply, 0);
                 reply.readException();
                 boolean isAuthed = reply.readBoolean();
-                data.recycle();
-                reply.recycle();
                 Log.e(TAG, "isAuthedClient, the " + packageName + " is Authed " + isAuthed);
                 return isAuthed;
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "isAuthedClient failed, returning true fallback: " + e.getMessage());
+                return true;
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -570,13 +574,12 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInt(1);
                 this.mRemote.transact(10014, data, reply, 0);
                 reply.readException();
-                data.recycle();
-                reply.recycle();
                 Log.e(TAG, "preOpenCamera, the " + packageName + " preOpenSend ");
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "preOpenCamera failed: " + e.getMessage());
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -594,13 +597,12 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeIntArray(param);
                 this.mRemote.transact(10015, data, reply, 1);
                 reply.readException();
-                data.recycle();
-                reply.recycle();
                 Log.e(TAG, "sendOplusExtCamCmd complete ");
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "sendOplusExtCamCmd failed: " + e.getMessage());
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -618,13 +620,12 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 byte[] byteArray = reply.createByteArray();
                 String res = new String(byteArray);
                 result.append(res);
-                data.recycle();
-                reply.recycle();
                 Log.i(TAG, "readMemoryInfo complete");
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "readMemoryInfo failed: " + e.getMessage());
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -640,6 +641,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInterfaceToken(DESCRIPTOR);
                 this.mRemote.transact(10006, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setCallInfo failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -659,6 +662,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeString(packageName);
                 remote.transact(10003, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setPackageName failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -680,6 +685,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInt(pid);
                 remote.transact(10005, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setClientInfo failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -700,6 +707,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInt(pid);
                 remote.transact(10007, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setRIOClientInfo failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -719,6 +728,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeString(packageName);
                 this.mRemote.transact(10020, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "unRegisterCameraDeviceCallback failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -739,6 +750,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeStrongBinder(client);
                 this.mRemote.transact(10022, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setDeathRecipient failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -759,6 +772,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInt(status);
                 remote.transact(10021, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setSatelliteCallStatus failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -780,13 +795,12 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 this.mRemote.transact(10010, data, reply, 0);
                 Log.i(TAG, "setOmojiJson process X");
                 reply.readException();
-                data.recycle();
-                reply.recycle();
                 Log.i(TAG, "setOmojiJson X");
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "setOmojiJson failed: " + e.getMessage());
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -803,6 +817,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInt(torchIntensity);
                 remote.transact(10008, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setTorchIntensity failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -821,6 +837,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInterfaceToken(DESCRIPTOR);
                 this.mRemote.transact(10009, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "disconnectClients failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -840,14 +858,14 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 this.mRemote.transact(10011, data, reply, 0);
                 reply.readException();
                 boolean isConnected = reply.readBoolean();
-                data.recycle();
-                reply.recycle();
                 Log.e(TAG, "isClientConnected: " + isConnected);
                 return isConnected;
-            } catch (Throwable th) {
+            } catch (Exception e) {
+                Log.e(TAG, "isClientConnected failed, returning false fallback: " + e.getMessage());
+                return false;
+            } finally {
                 data.recycle();
                 reply.recycle();
-                throw th;
             }
         }
 
@@ -863,6 +881,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeInterfaceToken(DESCRIPTOR);
                 remote.transact(10013, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "closeAON failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();
@@ -882,6 +902,8 @@ public final class OplusCameraManager implements IOplusCameraManager {
                 data.writeBoolean(isCameraUnitSession);
                 remote.transact(10016, data, reply, 0);
                 reply.readException();
+            } catch (Exception e) {
+                Log.e(TAG, "setIsCameraUnitSession failed: " + e.getMessage());
             } finally {
                 data.recycle();
                 reply.recycle();

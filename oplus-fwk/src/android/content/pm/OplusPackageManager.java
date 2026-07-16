@@ -54,10 +54,18 @@ public class OplusPackageManager {
         @Override // android.util.Singleton
         public IOplusPackageManager create() {
             try {
-                IOplusPackageManager oplusPackageManager = IOplusPackageManager.Stub.asInterface(ActivityThread.getPackageManager().asBinder().getExtension());
-                return oplusPackageManager;
-            } catch (RemoteException e) {
-                throw e.rethrowFromSystemServer();
+                IPackageManager pm = ActivityThread.getPackageManager();
+                if (pm == null || pm.asBinder() == null) {
+                    return null;
+                }
+                android.os.IBinder ext = pm.asBinder().getExtension();
+                if (ext == null) {
+                    return null;
+                }
+                return IOplusPackageManager.Stub.asInterface(ext);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to get IOplusPackageManager extension", e);
+                return null;
             }
         }
     };
