@@ -13,8 +13,8 @@ public class OplusNetworkUtil {
     public static boolean isWifiConnected(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm != null) {
-            return cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState()
-                    == NetworkInfo.State.CONNECTED;
+            NetworkInfo info = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            return info != null && info.getState() == NetworkInfo.State.CONNECTED;
         }
         return false;
     }
@@ -22,8 +22,8 @@ public class OplusNetworkUtil {
     public static boolean isMobileDataConnected(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm != null) {
-            return cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState()
-                    == NetworkInfo.State.CONNECTED;
+            NetworkInfo info = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+            return info != null && info.getState() == NetworkInfo.State.CONNECTED;
         }
         return false;
     }
