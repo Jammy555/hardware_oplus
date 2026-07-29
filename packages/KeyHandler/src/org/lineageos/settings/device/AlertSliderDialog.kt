@@ -9,13 +9,14 @@
 package org.lineageos.settings.device
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Outline
 import android.graphics.PixelFormat
 import android.graphics.drawable.Animatable2
 import android.graphics.drawable.AnimatedVectorDrawable
@@ -27,21 +28,24 @@ import android.view.Gravity
 import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.view.Window
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
+import android.view.animation.PathInterpolator
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 
-import android.graphics.Outline
-import android.view.ViewOutlineProvider
 import com.android.internal.graphics.drawable.BackgroundBlurDrawable
 
 class AlertSliderDialog(private val context: Context) :
     Dialog(context, R.style.alert_slider_theme) {
     private val dialogView by lazy { findViewById<LinearLayout>(R.id.alert_slider_dialog)!! }
     private val frameView by lazy { findViewById<ViewGroup>(R.id.alert_slider_view)!! }
+    private val iconContainer by lazy { findViewById<FrameLayout>(R.id.alert_slider_icon_container)!! }
+    private val textContainer by lazy { findViewById<FrameLayout>(R.id.alert_slider_text_container)!! }
     private val iconView by lazy { findViewById<ImageView>(R.id.alert_slider_icon)!! }
     private val textView by lazy { findViewById<TextView>(R.id.alert_slider_text)!! }
     private val emojiView by lazy { findViewById<TextView>(R.id.alert_slider_emoji_view)!! }
@@ -54,10 +58,12 @@ class AlertSliderDialog(private val context: Context) :
     private val xPos: Int
     private val yPos: Int
 
-    private var isAnimating = false
-    private var animator = ValueAnimator()
     private var isBlurEnabled = false
     private var blurDrawable: BackgroundBlurDrawable? = null
+
+    private var currentAnimatorSet: AnimatorSet? = null
+    private var isDismissing = false
+    private var isLabelHidden = false
 
     init {
         window?.let {
@@ -146,6 +152,186 @@ class AlertSliderDialog(private val context: Context) :
         }
     }
 
+    override fun show() {
+        isDismissing = false
+        super.show()
+        frameView.post {
+            animateEntrance()
+        }
+    }
+
+    override fun dismiss() {
+        if (isDismissing || !isShowing) {
+            super.dismiss()
+            return
+        }
+        animateExit {
+            super.dismiss()
+        }
+    }
+
+    private fun animateEntrance() {
+        currentAnimatorSet?.cancel()
+
+        textContainer.visibility = if (isLabelHidden) View.GONE else View.VISIBLE
+        frameView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        frameView.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        val fullWidth = frameView.measuredWidth
+        val collapsedWidth = 48.toPx()
+
+        // Phase 1 Initial State
+        iconContainer.alpha = 0f
+        iconContainer.scaleX = 0.78f
+        iconContainer.scaleY = 0.78f
+        iconContainer.translationX = (-4).toPx().toFloat()
+
+        frameView.layoutParams.width = collapsedWidth
+        frameView.requestLayout()
+
+        textContainer.alpha = 0f
+        textContainer.translationX = 8.toPx().toFloat()
+
+        val fastOutSlowIn = PathInterpolator(0.2f, 0f, 0f, 1f)
+
+        // Phase 1: Icon Spawn (0 - 140ms)
+        val iconAlpha = ObjectAnimator.ofFloat(iconContainer, View.ALPHA, 0f, 1f).apply {
+            duration = 140
+            interpolator = fastOutSlowIn
+        }
+        val iconScaleX = ObjectAnimator.ofFloat(iconContainer, View.SCALE_X, 0.78f, 1.0f).apply {
+            duration = 140
+            interpolator = fastOutSlowIn
+        }
+        val iconScaleY = ObjectAnimator.ofFloat(iconContainer, View.SCALE_Y, 0.78f, 1.0f).apply {
+            duration = 140
+            interpolator = fastOutSlowIn
+        }
+        val iconTransX = ObjectAnimator.ofFloat(iconContainer, View.TRANSLATION_X, (-4).toPx().toFloat(), 0f).apply {
+            duration = 140
+            interpolator = fastOutSlowIn
+        }
+
+        // Phase 3: Capsule Morph (140 - 300ms)
+        val capsuleExpand = ValueAnimator.ofInt(collapsedWidth, fullWidth).apply {
+            duration = 160
+            startDelay = 140
+            interpolator = fastOutSlowIn
+            addUpdateListener { anim ->
+                val w = anim.animatedValue as Int
+                frameView.layoutParams.width = w
+                frameView.requestLayout()
+            }
+        }
+
+        // Phase 4: Text Reveal (220 - 380ms)
+        val textAlpha = ObjectAnimator.ofFloat(textContainer, View.ALPHA, 0f, 1f).apply {
+            duration = 160
+            startDelay = 220
+            interpolator = fastOutSlowIn
+        }
+        val textTransX = ObjectAnimator.ofFloat(textContainer, View.TRANSLATION_X, 8.toPx().toFloat(), 0f).apply {
+            duration = 160
+            startDelay = 220
+            interpolator = fastOutSlowIn
+        }
+
+        // Phase 5: Settle (300 - 360ms)
+        val settleAnim = ValueAnimator.ofInt(fullWidth, (fullWidth * 1.012f).toInt(), fullWidth).apply {
+            duration = 60
+            startDelay = 300
+            interpolator = OvershootInterpolator(0.18f)
+            addUpdateListener { anim ->
+                val w = anim.animatedValue as Int
+                frameView.layoutParams.width = w
+                frameView.requestLayout()
+            }
+        }
+
+        currentAnimatorSet = AnimatorSet().apply {
+            playTogether(
+                iconAlpha, iconScaleX, iconScaleY, iconTransX,
+                capsuleExpand,
+                textAlpha, textTransX,
+                settleAnim
+            )
+            start()
+        }
+    }
+
+    private fun animateExit(onComplete: () -> Unit) {
+        currentAnimatorSet?.cancel()
+
+        val currentWidth = frameView.width
+        val collapsedWidth = 48.toPx()
+        val fastOutLinearIn = PathInterpolator(0.4f, 0f, 1f, 1f)
+
+        // Exit Phase 1: Text Fade (0 - 120ms)
+        val textAlpha = ObjectAnimator.ofFloat(textContainer, View.ALPHA, textContainer.alpha, 0f).apply {
+            duration = 120
+            interpolator = fastOutLinearIn
+        }
+        val textTransX = ObjectAnimator.ofFloat(textContainer, View.TRANSLATION_X, textContainer.translationX, 6.toPx().toFloat()).apply {
+            duration = 120
+            interpolator = fastOutLinearIn
+        }
+
+        // Exit Phase 2: Capsule Collapse (100 - 260ms)
+        val capsuleCollapse = ValueAnimator.ofInt(currentWidth, collapsedWidth).apply {
+            duration = 160
+            startDelay = 100
+            interpolator = fastOutLinearIn
+            addUpdateListener { anim ->
+                val w = anim.animatedValue as Int
+                frameView.layoutParams.width = w
+                frameView.requestLayout()
+            }
+        }
+
+        // Exit Phase 3: Icon Fade (240 - 340ms)
+        val iconAlpha = ObjectAnimator.ofFloat(iconContainer, View.ALPHA, iconContainer.alpha, 0f).apply {
+            duration = 100
+            startDelay = 240
+            interpolator = fastOutLinearIn
+        }
+        val iconScaleX = ObjectAnimator.ofFloat(iconContainer, View.SCALE_X, iconContainer.scaleX, 0.82f).apply {
+            duration = 100
+            startDelay = 240
+            interpolator = fastOutLinearIn
+        }
+        val iconScaleY = ObjectAnimator.ofFloat(iconContainer, View.SCALE_Y, iconContainer.scaleY, 0.82f).apply {
+            duration = 100
+            startDelay = 240
+            interpolator = fastOutLinearIn
+        }
+
+        currentAnimatorSet = AnimatorSet().apply {
+            playTogether(textAlpha, textTransX, capsuleCollapse, iconAlpha, iconScaleX, iconScaleY)
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    onComplete()
+                }
+            })
+            start()
+        }
+    }
+
+    private fun updateWidthAnimated(targetWidth: Int) {
+        if (frameView.width == targetWidth) return
+        ValueAnimator.ofInt(frameView.width, targetWidth).apply {
+            duration = 160
+            interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
+            addUpdateListener { anim ->
+                val w = anim.animatedValue as Int
+                frameView.layoutParams.width = w
+                frameView.requestLayout()
+            }
+            start()
+        }
+    }
+
     fun refreshBlur() {
         window?.let {
             it.setBackgroundBlurRadius(0)
@@ -214,6 +400,7 @@ class AlertSliderDialog(private val context: Context) :
         val blurPopup = Settings.System.getInt(resolver, "config_alert_slider_glass", 0) != 0
         val hideLabel = Settings.System.getInt(resolver, "config_alert_slider_hide_label", 0) != 0
         isBlurEnabled = blurPopup
+        isLabelHidden = hideLabel
         refreshBlur()
 
         applyUiContent(position, ringerMode, hideLabel, blurPopup)
@@ -259,11 +446,10 @@ class AlertSliderDialog(private val context: Context) :
         val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
         updateBlurBackground(blurPopup, nightMode)
 
-
         if (hideLabel) {
-            textView.visibility = View.GONE
+            textContainer.visibility = View.GONE
         } else {
-            textView.visibility = View.VISIBLE
+            textContainer.visibility = View.VISIBLE
             textView.setText(
                 when (ringerMode) {
                     AudioManager.RINGER_MODE_SILENT -> R.string.alert_slider_mode_silent
@@ -284,9 +470,15 @@ class AlertSliderDialog(private val context: Context) :
             }
             textView.setTextColor(textColor)
         }
+
+        if (isShowing && !isDismissing) {
+            frameView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            updateWidthAnimated(frameView.measuredWidth)
+        }
     }
-
-
 
     private fun applyUiContent(position: Int, ringerMode: Int, hideLabel: Boolean, blurActive: Boolean) {
         val resolver = context.contentResolver
@@ -343,7 +535,6 @@ class AlertSliderDialog(private val context: Context) :
 
         if (animDrawableRes != 0) {
             iconView.setImageResource(animDrawableRes)
-            // Tint for blur mode readability
             if (blurActive) {
                 val nightMode = (context.resources.configuration.uiMode
                     and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
@@ -388,8 +579,6 @@ class AlertSliderDialog(private val context: Context) :
         }
     }
 
-
-
     private fun animateEmoji(view: TextView) {
         view.scaleX = 0.4f
         view.scaleY = 0.4f
@@ -406,6 +595,8 @@ class AlertSliderDialog(private val context: Context) :
             start()
         }
     }
+
+    private fun Int.toPx(): Int = (this * context.resources.displayMetrics.density).toInt()
 
     companion object {
         private const val TAG = "AlertSliderDialog"
