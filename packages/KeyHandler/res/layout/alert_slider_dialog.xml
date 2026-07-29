@@ -25,7 +25,8 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:minHeight="48dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:clipToOutline="true">
 
         <FrameLayout
             android:layout_width="wrap_content"
@@ -53,9 +54,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:fontFamily="@*android:string/config_headlineFontFamilyMedium"
             android:gravity="center_vertical"
+            android:includeFontPadding="false"
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="@dimen/alert_slider_text_size"
             android:scrollHorizontally="true"

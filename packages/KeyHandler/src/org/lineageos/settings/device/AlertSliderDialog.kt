@@ -34,6 +34,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 
+import android.graphics.Outline
+import android.view.ViewOutlineProvider
+import com.android.internal.graphics.drawable.BackgroundBlurDrawable
+
 class AlertSliderDialog(private val context: Context) :
     Dialog(context, R.style.alert_slider_theme) {
     private val dialogView by lazy { findViewById<LinearLayout>(R.id.alert_slider_dialog)!! }
@@ -53,6 +57,7 @@ class AlertSliderDialog(private val context: Context) :
     private var isAnimating = false
     private var animator = ValueAnimator()
     private var isBlurEnabled = false
+    private var blurDrawable: BackgroundBlurDrawable? = null
 
     init {
         window?.let {
@@ -75,10 +80,29 @@ class AlertSliderDialog(private val context: Context) :
                         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
                     title = TAG
                 }
+            it.setElevation(0f)
+            it.decorView.elevation = 0f
+            it.decorView.clipToOutline = false
         }
 
         setCanceledOnTouchOutside(false)
         setContentView(R.layout.alert_slider_dialog)
+
+        dialogView.elevation = 0f
+        dialogView.background = null
+        dialogView.clipToOutline = false
+
+        frameView.elevation = 0f
+        frameView.clipToOutline = true
+        frameView.outlineProvider = ViewOutlineProvider.BACKGROUND
+
+        frameView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                updateBlurBackground(isBlurEnabled, nightMode)
+            }
+            override fun onViewDetachedFromWindow(v: View) {}
+        })
 
         val res = context.resources
         val fraction = res.getFraction(R.fraction.alert_slider_dialog_y, 1, 1)
@@ -124,8 +148,62 @@ class AlertSliderDialog(private val context: Context) :
 
     fun refreshBlur() {
         window?.let {
-            it.setBackgroundBlurRadius(if (isBlurEnabled) BLUR_RADIUS else 0)
+            it.setBackgroundBlurRadius(0)
             it.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
+        }
+    }
+
+    private fun updateBlurBackground(blurPopup: Boolean, nightMode: Boolean) {
+        dialogView.background = null
+        dialogView.elevation = 0f
+        dialogView.clipToOutline = false
+        window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        window?.setElevation(0f)
+        window?.decorView?.elevation = 0f
+        window?.decorView?.clipToOutline = false
+        window?.setBackgroundBlurRadius(0)
+
+        val radiusPx = context.resources.getDimension(R.dimen.alert_slider_corner_radius)
+
+        if (blurPopup) {
+            val vri = frameView.viewRootImpl
+            if (vri != null) {
+                val drawable = blurDrawable ?: vri.createBackgroundBlurDrawable().also { blurDrawable = it }
+                val h = frameView.height.toFloat()
+                val r = if (h > 0) h / 2f else radiusPx
+                drawable.setCornerRadius(r)
+                drawable.setBlurRadius(BLUR_RADIUS)
+                drawable.setColor(if (nightMode) Color.argb(160, 24, 24, 24) else Color.argb(170, 245, 245, 247))
+                frameView.background = drawable
+            } else {
+                val bgDrawable = context.getDrawable(R.drawable.alert_slider_bg)?.mutate() as? android.graphics.drawable.GradientDrawable
+                if (bgDrawable != null) {
+                    bgDrawable.cornerRadius = radiusPx
+                    bgDrawable.setColor(if (nightMode) Color.argb(160, 24, 24, 24) else Color.argb(170, 245, 245, 247))
+                    frameView.background = bgDrawable
+                }
+            }
+        } else {
+            val bgDrawable = context.getDrawable(R.drawable.alert_slider_bg)?.mutate() as? android.graphics.drawable.GradientDrawable
+            if (bgDrawable != null) {
+                bgDrawable.cornerRadius = radiusPx
+                bgDrawable.setColor(if (nightMode) Color.parseColor("#1C1B1F") else Color.WHITE)
+                frameView.background = bgDrawable
+            }
+        }
+
+        frameView.outlineProvider = ViewOutlineProvider.BACKGROUND
+        frameView.clipToOutline = true
+        frameView.elevation = 0f
+
+        frameView.post {
+            val h = frameView.height.toFloat()
+            if (h > 0) {
+                val capsuleRadius = h / 2f
+                blurDrawable?.setCornerRadius(capsuleRadius)
+                (frameView.background as? android.graphics.drawable.GradientDrawable)?.cornerRadius = capsuleRadius
+                frameView.invalidateOutline()
+            }
         }
     }
 
@@ -164,8 +242,6 @@ class AlertSliderDialog(private val context: Context) :
             dialogView.background = null
             frameView.background = null
         } else {
-            dialogView.background = null
-            frameView.background = null
             window?.let {
                 it.attributes = it.attributes.apply {
                     gravity = when (rotation) {
@@ -181,15 +257,7 @@ class AlertSliderDialog(private val context: Context) :
         }
 
         val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        val bgDrawable = context.getDrawable(R.drawable.alert_slider_bg)?.mutate() as? android.graphics.drawable.GradientDrawable
-        if (bgDrawable != null) {
-            if (blurPopup) {
-                bgDrawable.setColor(if (nightMode) Color.argb(120, 30, 30, 40) else Color.argb(120, 255, 255, 255))
-            } else {
-                bgDrawable.setColor(if (nightMode) Color.parseColor("#1A1A1A") else Color.WHITE)
-            }
-            window?.setBackgroundDrawable(bgDrawable)
-        }
+        updateBlurBackground(blurPopup, nightMode)
 
 
         if (hideLabel) {
