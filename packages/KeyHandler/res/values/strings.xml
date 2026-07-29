@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SPDX-FileCopyrightText: 2024 The LineageOS Project
+    SPDX-FileCopyrightText: 2024-2026 The LineageOS Project
     SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
@@ -14,6 +14,11 @@
     <string name="alert_slider_glass_title">Blur Popup</string>
     <string name="alert_slider_glass_summary">Blur the area behind the popup for a frosted glass look</string>
 
+    <string name="alert_slider_glow_title">Ambient Glow Bloom</string>
+    <string name="alert_slider_glow_summary">Show a luminous dynamic aura bloom behind the popup</string>
+    <string name="alert_slider_glow_spread_title">Glow Spread</string>
+    <string name="alert_slider_glow_strength_title">Glow Intensity</string>
+
     <string name="alert_slider_emoji_top_title">Top Position Emoji</string>
     <string name="alert_slider_emoji_middle_title">Middle Position Emoji</string>
     <string name="alert_slider_emoji_bottom_title">Bottom Position Emoji</string>
@@ -26,7 +31,7 @@
 
     <!-- Help text for custom emoji -->
     <string name="alert_slider_emoji_help">Type an emoji to replace the default icon for each slider position</string>
-</resources>
+
     <!-- Torch slider modes -->
     <string name="alert_slider_mode_torch_on">Torch On</string>
     <string name="alert_slider_mode_torch_off">Torch Off</string>
