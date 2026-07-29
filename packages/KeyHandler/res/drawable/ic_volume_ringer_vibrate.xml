@@ -46,8 +46,13 @@
             android:fillColor="@color/alert_slider_icon_color"
             android:pathData="M16,14V6H17.5V14H16Z" />
     </group>
-    <!-- Phone body: static, always visible -->
-    <path
-        android:fillColor="@color/alert_slider_icon_color"
-        android:pathData="M6.5,17C6.083,17 5.729,16.854 5.438,16.563C5.146,16.271 5,15.917 5,15.5V4.5C5,4.083 5.146,3.729 5.438,3.438C5.729,3.146 6.083,3 6.5,3H13.5C13.917,3 14.271,3.146 14.563,3.438C14.854,3.729 15,4.083 15,4.5V15.5C15,15.917 14.854,16.271 14.563,16.563C14.271,16.854 13.917,17 13.5,17H6.5Z" />
+    <!-- Phone body: animated haptic micro-shake -->
+    <group
+        android:name="vibrate_body"
+        android:pivotX="10"
+        android:pivotY="10">
+        <path
+            android:fillColor="@color/alert_slider_icon_color"
+            android:pathData="M6.5,17C6.083,17 5.729,16.854 5.438,16.563C5.146,16.271 5,15.917 5,15.5V4.5C5,4.083 5.146,3.729 5.438,3.438C5.729,3.146 6.083,3 6.5,3H13.5C13.917,3 14.271,3.146 14.563,3.438C14.854,3.729 15,4.083 15,4.5V15.5C15,15.917 14.854,16.271 14.563,16.563C14.271,16.854 13.917,17 13.5,17H6.5Z" />
+    </group>
 </vector>

@@ -114,4 +114,28 @@
         </aapt:attr>
     </target>
 
+    <target android:name="vibrate_body">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt"
+            name="android:animation">
+            <set android:ordering="together">
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:valueFrom="-0.6"
+                    android:valueTo="0.6"
+                    android:duration="80"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.97"
+                    android:valueTo="1.03"
+                    android:duration="120"
+                    android:repeatCount="infinite"
+                    android:repeatMode="reverse"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+            </set>
+        </aapt:attr>
+    </target>
+
 </animated-vector>
