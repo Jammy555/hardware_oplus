@@ -1,29 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SPDX-FileCopyrightText: 2019 CypherOS
     SPDX-FileCopyrightText: 2014-2020 Paranoid Android
-    SPDX-FileCopyrightText: 2023 The LineageOS Project
-    SPDX-FileCopyrightText: 2023 Yet Another AOSP Project
+    SPDX-FileCopyrightText: 2023-2026 The LineageOS Project
     SPDX-License-Identifier: Apache-2.0
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/alert_slider_dialog"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
+    android:padding="8dp"
     android:clipToPadding="false"
+    android:clipChildren="false"
     android:theme="@style/alert_slider_theme">
 
+    <!-- Layer 1: Glow / Bloom View (Bottom Layer - Animated Gaussian Blur Bloom) -->
+    <View
+        android:id="@+id/alert_slider_glow"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:alpha="0"
+        android:clipToOutline="false" />
+
+    <!-- Layer 2: Capsule View (Middle Layer - Main Rounded Background) -->
     <LinearLayout
         android:id="@+id/alert_slider_view"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_gravity="center|right"
+        android:layout_gravity="center"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:clipToOutline="true"
         android:clipChildren="true">
 
+        <!-- Layer 3: Icon Container (Top Layer Left - Fixed 48dp x 48dp) -->
         <FrameLayout
             android:id="@+id/alert_slider_icon_container"
             android:layout_width="48dp"
@@ -34,18 +45,19 @@
                 android:id="@+id/alert_slider_icon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:contentDescription="@null" />
 
             <TextView
                 android:id="@+id/alert_slider_emoji_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:visibility="gone" />
-
         </FrameLayout>
 
+        <!-- Layer 4: Text Container (Top Layer Right - Reveal / Hide Text Region) -->
         <FrameLayout
             android:id="@+id/alert_slider_text_container"
             android:layout_width="wrap_content"
@@ -70,4 +82,4 @@
 
         </FrameLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

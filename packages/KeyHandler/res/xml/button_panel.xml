@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    SPDX-FileCopyrightText: 2021-2025 The LineageOS Project
+    SPDX-FileCopyrightText: 2021-2026 The LineageOS Project
     SPDX-License-Identifier: Apache-2.0
 -->
 <PreferenceScreen
@@ -62,6 +62,32 @@
             android:defaultValue="false" />
 
         <SwitchPreferenceCompat
+            android:key="config_alert_slider_glow"
+            android:title="@string/alert_slider_glow_title"
+            android:summary="@string/alert_slider_glow_summary"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:key="config_alert_slider_glow_spread"
+            android:dialogTitle="@string/alert_slider_glow_spread_title"
+            android:entries="@array/alert_slider_glow_spread_entries"
+            android:entryValues="@array/alert_slider_glow_spread_entry_values"
+            android:defaultValue="8"
+            android:title="@string/alert_slider_glow_spread_title"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="config_alert_slider_glow" />
+
+        <ListPreference
+            android:key="config_alert_slider_glow_strength"
+            android:dialogTitle="@string/alert_slider_glow_strength_title"
+            android:entries="@array/alert_slider_glow_strength_entries"
+            android:entryValues="@array/alert_slider_glow_strength_entry_values"
+            android:defaultValue="80"
+            android:title="@string/alert_slider_glow_strength_title"
+            app:useSimpleSummaryProvider="true"
+            app:dependency="config_alert_slider_glow" />
+
+        <SwitchPreferenceCompat
             android:key="config_alert_slider_hide_label"
             android:title="@string/alert_slider_hide_label_title"
             android:summary="@string/alert_slider_hide_label_summary"
@@ -71,7 +97,6 @@
 
     <PreferenceCategory
         android:title="@string/alert_slider_emoji_category_title">
-
 
         <EditTextPreference
             android:key="config_emoji_top"
