@@ -4,7 +4,7 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?android:attr/colorControlNormal">
-    <group android:name="torch_group" android:pivotX="12" android:pivotY="12">
+    <group android:name="torch_group" android:pivotX="12" android:pivotY="12" android:scaleX="1.15" android:scaleY="1.15">
         <group android:name="torch_body" android:pivotX="12" android:pivotY="14">
             <path
                 android:fillColor="@android:color/white"

@@ -21,12 +21,17 @@
                 android:fillColor="@color/alert_slider_icon_color"
                 android:pathData="M11.5,13.125V6.833C12.125,7.111 12.611,7.535 12.958,8.104C13.319,8.674 13.5,9.299 13.5,9.979C13.5,10.66 13.319,11.285 12.958,11.854C12.611,12.41 12.125,12.833 11.5,13.125Z" />
         </group>
-        <path
-            android:name="mute_slash"
-            android:fillColor="#00000000"
-            android:strokeWidth="2.2"
-            android:strokeColor="@color/alert_slider_icon_color"
-            android:strokeLineCap="round"
-            android:pathData="M3,3 L17,17" />
+        <group
+            android:name="slash_group"
+            android:pivotX="10"
+            android:pivotY="10">
+            <path
+                android:name="mute_slash"
+                android:fillColor="#00000000"
+                android:strokeWidth="2.2"
+                android:strokeColor="@color/alert_slider_icon_color"
+                android:strokeLineCap="round"
+                android:pathData="M3,3 L17,17" />
+        </group>
     </group>
 </vector>

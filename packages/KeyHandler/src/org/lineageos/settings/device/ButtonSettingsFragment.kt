@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2021-2025 The LineageOS Project
+ * SPDX-FileCopyrightText: 2021-2026 The LineageOS Project
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -41,6 +41,10 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
         findPreference<SwitchPreferenceCompat>("config_alert_slider_island")?.onPreferenceChangeListener = this
         findPreference<SwitchPreferenceCompat>("config_alert_slider_glass")?.onPreferenceChangeListener = this
         findPreference<SwitchPreferenceCompat>("config_alert_slider_hide_label")?.onPreferenceChangeListener = this
+        findPreference<SwitchPreferenceCompat>("config_alert_slider_glow")?.onPreferenceChangeListener = this
+        findPreference<ListPreference>("config_alert_slider_glow_spread")?.onPreferenceChangeListener = this
+        findPreference<ListPreference>("config_alert_slider_glow_strength")?.onPreferenceChangeListener = this
+
         findPreference<SwitchPreferenceCompat>("config_mute_media")?.onPreferenceChangeListener = this
         findPreference<SwitchPreferenceCompat>("config_show_dialog")?.onPreferenceChangeListener = this
         emojiTopPref.onPreferenceChangeListener = this
@@ -54,6 +58,14 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
             Settings.System.getInt(resolver, "config_alert_slider_glass", 0) != 0
         findPreference<SwitchPreferenceCompat>("config_alert_slider_hide_label")?.isChecked =
             Settings.System.getInt(resolver, "config_alert_slider_hide_label", 0) != 0
+        findPreference<SwitchPreferenceCompat>("config_alert_slider_glow")?.isChecked =
+            Settings.System.getInt(resolver, "config_alert_slider_glow", 1) != 0
+        findPreference<ListPreference>("config_alert_slider_glow_spread")?.let { pref ->
+            pref.value = Settings.System.getInt(resolver, "config_alert_slider_glow_spread", 8).toString()
+        }
+        findPreference<ListPreference>("config_alert_slider_glow_strength")?.let { pref ->
+            pref.value = Settings.System.getInt(resolver, "config_alert_slider_glow_strength", 80).toString()
+        }
         findPreference<SwitchPreferenceCompat>("config_mute_media")?.isChecked =
             Settings.System.getInt(resolver, "config_mute_media", 0) != 0
         findPreference<SwitchPreferenceCompat>("config_show_dialog")?.isChecked =
@@ -114,8 +126,12 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
                 }
                 Settings.System.putString(resolver, preference.key, value)
             }
-            "config_alert_slider_island", "config_alert_slider_glass", "config_alert_slider_hide_label" -> {
+            "config_alert_slider_island", "config_alert_slider_glass", "config_alert_slider_hide_label", "config_alert_slider_glow" -> {
                 Settings.System.putInt(resolver, preference.key, if (newValue as Boolean) 1 else 0)
+            }
+            "config_alert_slider_glow_spread", "config_alert_slider_glow_strength" -> {
+                val strVal = newValue as? String ?: return true
+                Settings.System.putInt(resolver, preference.key, strVal.toIntOrNull() ?: 8)
             }
             "config_mute_media", "config_show_dialog" -> {
                 Settings.System.putInt(resolver, preference.key, if (newValue as Boolean) 1 else 0)
@@ -141,6 +157,4 @@ class ButtonSettingsFragment : SettingsBasePreferenceFragment(), Preference.OnPr
         }
         return true
     }
-
-
 }
