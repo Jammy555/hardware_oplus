@@ -2,7 +2,7 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/ic_volume_ringer">
-    <!-- Soundwave arcs: fade-in pulse -->
+    <!-- Soundwave arcs: outward wave propagation with opacity fade -->
     <target android:name="soundwave">
         <aapt:attr xmlns:aapt="http://schemas.android.com/aapt"
             name="android:animation">
@@ -14,31 +14,41 @@
                     android:interpolator="@android:interpolator/decelerate_cubic" />
                 <objectAnimator
                     android:propertyName="scaleX"
-                    android:valueFrom="0.6" android:valueTo="1"
-                    android:duration="400"
-                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                    android:valueFrom="0.5" android:valueTo="1.05"
+                    android:duration="380"
+                    android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
-                    android:valueFrom="0.6" android:valueTo="1"
-                    android:duration="400"
+                    android:valueFrom="0.5" android:valueTo="1.05"
+                    android:duration="380"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="translateX"
+                    android:valueFrom="-1.5" android:valueTo="0"
+                    android:duration="380"
                     android:interpolator="@android:interpolator/decelerate_cubic" />
             </set>
         </aapt:attr>
     </target>
-    <!-- Speaker body: quick bounce -->
+    <!-- Speaker body: elastic diaphragm pop -->
     <target android:name="speaker_body">
         <aapt:attr xmlns:aapt="http://schemas.android.com/aapt"
             name="android:animation">
             <set android:ordering="sequentially">
                 <objectAnimator
                     android:propertyName="scaleX"
-                    android:valueFrom="0.85" android:valueTo="1.08"
+                    android:valueFrom="0.85" android:valueTo="1.12"
                     android:duration="120"
                     android:interpolator="@android:interpolator/fast_out_slow_in" />
                 <objectAnimator
                     android:propertyName="scaleX"
-                    android:valueFrom="1.08" android:valueTo="1"
-                    android:duration="180"
+                    android:valueFrom="1.12" android:valueTo="0.96"
+                    android:duration="120"
+                    android:interpolator="@android:interpolator/fast_out_slow_in" />
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.96" android:valueTo="1.0"
+                    android:duration="100"
                     android:interpolator="@android:interpolator/decelerate_cubic" />
             </set>
         </aapt:attr>
