@@ -190,11 +190,16 @@ class AlertSliderDialog(private val context: Context) :
     }
 
     private fun getSystemAccentColor(): Int {
-        val typedValue = TypedValue()
-        if (context.theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true)) {
-            return typedValue.data
+        return try {
+            context.resources.getColor(android.R.color.system_accent1_500, null)
+        } catch (e: Throwable) {
+            val typedValue = TypedValue()
+            if (context.theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true)) {
+                typedValue.data
+            } else {
+                context.getColor(R.color.alert_slider_icon_color)
+            }
         }
-        return context.getColor(R.color.alert_slider_icon_color)
     }
 
     private fun updateGlowShape(targetWidth: Int) {
