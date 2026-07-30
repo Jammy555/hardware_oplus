@@ -230,39 +230,26 @@ class AlertSliderDialog(private val context: Context) :
         return context.getColor(R.color.alert_slider_icon_color)
     }
 
+    private fun blendColors(color1: Int, color2: Int, ratio: Float): Int {
+        val inverseRatio = 1f - ratio
+        val a = (Color.alpha(color1) * inverseRatio + Color.alpha(color2) * ratio).toInt()
+        val r = (Color.red(color1) * inverseRatio + Color.red(color2) * ratio).toInt()
+        val g = (Color.green(color1) * inverseRatio + Color.green(color2) * ratio).toInt()
+        val b = (Color.blue(color1) * inverseRatio + Color.blue(color2) * ratio).toInt()
+        return Color.argb(a, r, g, b)
+    }
+
     private fun getSystemForegroundContentColor(nightMode: Boolean): Int {
-        val resNames = if (nightMode) {
-            arrayOf("system_accent1_100", "system_accent1_200", "system_accent1_50")
+        // system_accent1_500 reliably updates with dynamic Monet changes, but is mid-tone.
+        // We blend it with White/Black to create bright/deep high-contrast foreground colors.
+        val accent = getSystemAccentColor()
+        return if (nightMode) {
+            // Blend 65% White with 35% Accent -> Bright, crisp pastel tint for dark backgrounds
+            blendColors(accent, Color.WHITE, 0.65f)
         } else {
-            arrayOf("system_accent1_900", "system_accent1_800", "system_accent1_700")
+            // Blend 65% Black with 35% Accent -> Deep, crisp dark tint for light backgrounds
+            blendColors(accent, Color.BLACK, 0.65f)
         }
-
-        // 1. Try global System Resources first for bright dynamic text/icon tint
-        try {
-            val sysRes = Resources.getSystem()
-            for (name in resNames) {
-                val resId = sysRes.getIdentifier(name, "color", "android")
-                if (resId != 0) {
-                    val color = sysRes.getColor(resId, null)
-                    if (color != 0) return color
-                }
-            }
-        } catch (e: Throwable) {}
-
-        // 2. Try fresh ContextThemeWrapper
-        try {
-            val freshContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_DayNight)
-            val res = freshContext.resources
-            for (name in resNames) {
-                val resId = res.getIdentifier(name, "color", "android")
-                if (resId != 0) {
-                    val color = res.getColor(resId, freshContext.theme)
-                    if (color != 0) return color
-                }
-            }
-        } catch (e: Throwable) {}
-
-        return if (nightMode) Color.parseColor("#F8F9FA") else Color.parseColor("#1C1C1E")
     }
 
     private fun getSystemNeutralBackgroundColor(nightMode: Boolean): Int {
