@@ -15,6 +15,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Dialog
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.RenderEffect
@@ -28,6 +29,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.provider.Settings
 import android.util.TypedValue
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.Surface
 import android.view.View
@@ -190,16 +192,101 @@ class AlertSliderDialog(private val context: Context) :
     }
 
     private fun getSystemAccentColor(): Int {
-        return try {
-            context.resources.getColor(android.R.color.system_accent1_500, null)
-        } catch (e: Throwable) {
+        val resNames = arrayOf("system_accent1_500", "system_accent1_600", "system_accent1_400", "system_accent1_700")
+
+        // 1. Try global System Resources first for live framework overlay color
+        try {
+            val sysRes = Resources.getSystem()
+            for (name in resNames) {
+                val resId = sysRes.getIdentifier(name, "color", "android")
+                if (resId != 0) {
+                    val color = sysRes.getColor(resId, null)
+                    if (color != 0) return color
+                }
+            }
+        } catch (e: Throwable) {}
+
+        // 2. Try fresh theme wrapper context
+        try {
+            val freshContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_DayNight)
+            val res = freshContext.resources
+            for (name in resNames) {
+                val resId = res.getIdentifier(name, "color", "android")
+                if (resId != 0) {
+                    val color = res.getColor(resId, freshContext.theme)
+                    if (color != 0) return color
+                }
+            }
+        } catch (e: Throwable) {}
+
+        // 3. Fallback to Theme colorAccent
+        try {
             val typedValue = TypedValue()
             if (context.theme.resolveAttribute(android.R.attr.colorAccent, typedValue, true)) {
-                typedValue.data
-            } else {
-                context.getColor(R.color.alert_slider_icon_color)
+                if (typedValue.data != 0) return typedValue.data
             }
+        } catch (e: Throwable) {}
+
+        return context.getColor(R.color.alert_slider_icon_color)
+    }
+
+    private fun getSystemForegroundContentColor(nightMode: Boolean): Int {
+        val resNames = if (nightMode) {
+            arrayOf("system_accent1_100", "system_accent1_200", "system_accent1_50")
+        } else {
+            arrayOf("system_accent1_900", "system_accent1_800", "system_accent1_700")
         }
+
+        // 1. Try global System Resources first for bright dynamic text/icon tint
+        try {
+            val sysRes = Resources.getSystem()
+            for (name in resNames) {
+                val resId = sysRes.getIdentifier(name, "color", "android")
+                if (resId != 0) {
+                    val color = sysRes.getColor(resId, null)
+                    if (color != 0) return color
+                }
+            }
+        } catch (e: Throwable) {}
+
+        // 2. Try fresh ContextThemeWrapper
+        try {
+            val freshContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_DayNight)
+            val res = freshContext.resources
+            for (name in resNames) {
+                val resId = res.getIdentifier(name, "color", "android")
+                if (resId != 0) {
+                    val color = res.getColor(resId, freshContext.theme)
+                    if (color != 0) return color
+                }
+            }
+        } catch (e: Throwable) {}
+
+        return if (nightMode) Color.parseColor("#F8F9FA") else Color.parseColor("#1C1C1E")
+    }
+
+    private fun getSystemNeutralBackgroundColor(nightMode: Boolean): Int {
+        val resName = if (nightMode) "system_neutral1_900" else "system_neutral1_100"
+        try {
+            val freshContext = ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_DayNight)
+            val res = freshContext.resources
+            val resId = res.getIdentifier(resName, "color", "android")
+            if (resId != 0) {
+                val color = res.getColor(resId, freshContext.theme)
+                if (color != 0) return color
+            }
+        } catch (e: Throwable) {}
+
+        try {
+            val sysRes = Resources.getSystem()
+            val resId = sysRes.getIdentifier(resName, "color", "android")
+            if (resId != 0) {
+                val color = sysRes.getColor(resId, null)
+                if (color != 0) return color
+            }
+        } catch (e: Throwable) {}
+
+        return if (nightMode) Color.parseColor("#1C1F26") else Color.parseColor("#F0F4F8")
     }
 
     private fun updateGlowShape(targetWidth: Int) {
@@ -618,7 +705,7 @@ class AlertSliderDialog(private val context: Context) :
 
         val radiusPx = context.resources.getDimension(R.dimen.alert_slider_corner_radius)
 
-        val dynamicSurfaceColor = context.getColor(R.color.alert_slider_notification_background)
+        val dynamicSurfaceColor = getSystemNeutralBackgroundColor(nightMode)
 
         if (blurPopup) {
             val vri = frameView.viewRootImpl
@@ -748,7 +835,8 @@ class AlertSliderDialog(private val context: Context) :
                     else -> R.string.alert_slider_mode_none
                 }
             )
-            val textColor = context.getColor(R.color.alert_slider_text_color)
+            val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            val textColor = getSystemForegroundContentColor(nightMode)
             textView.setTextColor(textColor)
         }
 
@@ -826,7 +914,8 @@ class AlertSliderDialog(private val context: Context) :
             else -> R.drawable.ic_snow
         }
 
-        val iconColor = context.getColor(R.color.alert_slider_icon_color)
+        val nightMode = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val iconColor = getSystemForegroundContentColor(nightMode)
 
         if (animDrawableRes != 0) {
             iconView.setImageResource(animDrawableRes)
