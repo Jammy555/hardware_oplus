@@ -420,6 +420,10 @@ class AlertSliderDialog(private val context: Context) :
         val collapsedWidth = 48.toPx()
 
         // Phase 1 Initial State (0 - 140ms)
+        frameView.alpha = 1f
+        if (isBlurEnabled) {
+            blurDrawable?.setBlurRadius(BLUR_RADIUS)
+        }
         iconContainer.alpha = 0f
         iconContainer.scaleX = 0.78f
         iconContainer.scaleY = 0.78f
@@ -580,28 +584,44 @@ class AlertSliderDialog(private val context: Context) :
             }
         }
 
-        // Exit Phase 3: Icon Fade (240 - 340ms)
+        // Exit Phase 3: Icon & Capsule Background Fade (220 - 340ms)
+        val frameAlpha = ObjectAnimator.ofFloat(frameView, View.ALPHA, frameView.alpha, 0f).apply {
+            duration = 120
+            startDelay = 220
+            interpolator = fastOutLinearIn
+        }
         val iconAlpha = ObjectAnimator.ofFloat(iconContainer, View.ALPHA, iconContainer.alpha, 0f).apply {
-            duration = 100
-            startDelay = 240
+            duration = 120
+            startDelay = 220
             interpolator = fastOutLinearIn
         }
         val iconScaleX = ObjectAnimator.ofFloat(iconContainer, View.SCALE_X, iconContainer.scaleX, 0.82f).apply {
-            duration = 100
-            startDelay = 240
+            duration = 120
+            startDelay = 220
             interpolator = fastOutLinearIn
         }
         val iconScaleY = ObjectAnimator.ofFloat(iconContainer, View.SCALE_Y, iconContainer.scaleY, 0.82f).apply {
-            duration = 100
-            startDelay = 240
+            duration = 120
+            startDelay = 220
             interpolator = fastOutLinearIn
         }
 
         val animList = mutableListOf<Animator>(
-            textAlpha, textTransX, capsuleCollapse, iconAlpha, iconScaleX, iconScaleY
+            textAlpha, textTransX, capsuleCollapse, frameAlpha, iconAlpha, iconScaleX, iconScaleY
         )
 
-        if (isGlowEnabled) {
+        if (isBlurEnabled) {
+            val blurCollapse = ValueAnimator.ofInt(BLUR_RADIUS, 0).apply {
+                duration = 120
+                startDelay = 220
+                interpolator = fastOutLinearIn
+                addUpdateListener { anim ->
+                    val r = anim.animatedValue as Int
+                    blurDrawable?.setBlurRadius(r)
+                }
+            }
+            animList.add(blurCollapse)
+
             val glowCollapse = ValueAnimator.ofInt(currentWidth, collapsedWidth).apply {
                 duration = 160
                 startDelay = 135
@@ -613,8 +633,8 @@ class AlertSliderDialog(private val context: Context) :
             }
 
             val glowAlpha = ObjectAnimator.ofFloat(glowView, View.ALPHA, glowView.alpha, 0f).apply {
-                duration = 110
-                startDelay = 280
+                duration = 120
+                startDelay = 220
                 interpolator = fastOutLinearIn
             }
 
@@ -630,6 +650,7 @@ class AlertSliderDialog(private val context: Context) :
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     if (isDismissing) {
+                        blurDrawable?.setBlurRadius(0)
                         isDismissing = false
                         onComplete()
                     }
