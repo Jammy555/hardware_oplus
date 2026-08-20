@@ -20,10 +20,8 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.RenderEffect
 import android.graphics.Shader
-import android.graphics.drawable.Animatable2
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.media.AudioManager
 import android.os.Build
@@ -73,6 +71,11 @@ class AlertSliderDialog(private val context: Context) :
 
     private var currentAnimatorSet: AnimatorSet? = null
     private var glowAnimatorSet: AnimatorSet? = null
+    private var contentAnimatorSet: AnimatorSet? = null
+    private var iconMorphAnimator: AnimatorSet? = null
+    private var emojiAnimator: AnimatorSet? = null
+    private var glowStartRunnable: Runnable? = null
+    private var entranceRunnable: Runnable? = null
     private var isDismissing = false
     private var isLabelHidden = false
 
@@ -122,6 +125,7 @@ class AlertSliderDialog(private val context: Context) :
                 updateBlurBackground(isBlurEnabled, nightMode)
             }
             override fun onViewDetachedFromWindow(v: View) {
+                stopTransientWork()
                 blurDrawable = null
             }
         })
@@ -175,20 +179,76 @@ class AlertSliderDialog(private val context: Context) :
         if (!isShowing) {
             super.show()
         }
-        frameView.post {
+        startIconAnimation()
+        scheduleEntrance()
+    }
+
+    private fun scheduleEntrance() {
+        entranceRunnable?.let { frameView.removeCallbacks(it) }
+        val runnable = Runnable {
+            entranceRunnable = null
             animateEntrance()
             triggerGlowBreathing()
         }
+        entranceRunnable = runnable
+        frameView.post(runnable)
+    }
+
+    override fun onStop() {
+        stopTransientWork()
+        super.onStop()
     }
 
     override fun dismiss() {
         if (isDismissing || !isShowing) {
+            stopTransientWork()
             super.dismiss()
             return
         }
+        stopIconAnimation()
+        glowAnimatorSet?.cancel()
         animateExit {
             super.dismiss()
         }
+    }
+
+    private fun stopIconAnimation() {
+        (iconView.drawable as? AnimatedVectorDrawable)?.let { avd ->
+            avd.clearAnimationCallbacks()
+            avd.stop()
+        }
+    }
+
+    private fun startIconAnimation() {
+        (iconView.drawable as? AnimatedVectorDrawable)?.start()
+    }
+
+    private fun stopTransientWork() {
+        currentAnimatorSet?.cancel()
+        glowAnimatorSet?.cancel()
+        contentAnimatorSet?.cancel()
+        iconMorphAnimator?.cancel()
+        emojiAnimator?.cancel()
+        currentAnimatorSet = null
+        glowAnimatorSet = null
+        contentAnimatorSet = null
+        iconMorphAnimator = null
+        emojiAnimator = null
+
+        glowStartRunnable?.let { glowView.removeCallbacks(it) }
+        glowStartRunnable = null
+        entranceRunnable?.let { frameView.removeCallbacks(it) }
+        entranceRunnable = null
+        frameView.animate().cancel()
+        iconContainer.animate().cancel()
+        textContainer.animate().cancel()
+        stopIconAnimation()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            glowView.setRenderEffect(null)
+        }
+
+        blurDrawable?.setBlurRadius(0)
+        window?.setBackgroundBlurRadius(0)
     }
 
     private fun getDynamicResourceColor(resName: String, fallbackColor: Int): Int {
@@ -284,6 +344,9 @@ class AlertSliderDialog(private val context: Context) :
         if (!isGlowEnabled) {
             glowView.visibility = View.GONE
             glowView.alpha = 0f
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                glowView.setRenderEffect(null)
+            }
             return
         }
         glowView.visibility = View.VISIBLE
@@ -341,12 +404,14 @@ class AlertSliderDialog(private val context: Context) :
 
     private fun triggerGlowBreathing() {
         glowAnimatorSet?.cancel()
+        glowStartRunnable?.let { glowView.removeCallbacks(it) }
         if (!isGlowEnabled) {
             glowView.visibility = View.GONE
             glowView.alpha = 0f
             return
         }
-        glowView.post {
+        val startRunnable = Runnable {
+            glowStartRunnable = null
             updateGlowShape(frameView.width)
 
             val strengthFactor = (glowStrengthPercent / 100f).coerceIn(0.1f, 1.0f)
@@ -385,10 +450,13 @@ class AlertSliderDialog(private val context: Context) :
                 start()
             }
         }
+        glowStartRunnable = startRunnable
+        glowView.post(startRunnable)
     }
 
     private fun animateVenomIconMorph() {
         iconContainer.animate().cancel()
+        iconMorphAnimator?.cancel()
         iconContainer.scaleX = 1.0f
         iconContainer.scaleY = 1.0f
         iconContainer.rotation = 0f
@@ -399,7 +467,7 @@ class AlertSliderDialog(private val context: Context) :
         val rotation = ObjectAnimator.ofFloat(iconContainer, View.ROTATION, 0f, -45f, 25f, 0f)
         val alpha = ObjectAnimator.ofFloat(iconContainer, View.ALPHA, 1.0f, 0.3f, 1.0f)
 
-        AnimatorSet().apply {
+        iconMorphAnimator = AnimatorSet().apply {
             playTogether(scaleX, scaleY, rotation, alpha)
             duration = 450
             interpolator = OvershootInterpolator(2.5f)
@@ -411,6 +479,8 @@ class AlertSliderDialog(private val context: Context) :
         currentAnimatorSet?.cancel()
 
         textContainer.visibility = if (isLabelHidden) View.GONE else View.VISIBLE
+        // Measure the desired content width without applying an intermediate
+        // window resize; only the final full width is committed below.
         frameView.layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
         frameView.measure(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -418,6 +488,11 @@ class AlertSliderDialog(private val context: Context) :
         )
         val fullWidth = frameView.measuredWidth
         val collapsedWidth = 48.toPx()
+        val collapsedScale = (collapsedWidth.toFloat() / fullWidth).coerceAtMost(1f)
+        frameView.layoutParams.width = fullWidth
+        frameView.requestLayout()
+        frameView.pivotX = if (flip) fullWidth.toFloat() else 0f
+        frameView.pivotY = frameView.height / 2f
 
         // Phase 1 Initial State (0 - 140ms)
         frameView.alpha = 1f
@@ -429,8 +504,7 @@ class AlertSliderDialog(private val context: Context) :
         iconContainer.scaleY = 0.78f
         iconContainer.translationX = (-4).toPx().toFloat()
 
-        frameView.layoutParams.width = collapsedWidth
-        frameView.requestLayout()
+        frameView.scaleX = collapsedScale
 
         textContainer.alpha = 0f
         textContainer.translationX = 8.toPx().toFloat()
@@ -456,14 +530,12 @@ class AlertSliderDialog(private val context: Context) :
         }
 
         // Phase 2: Capsule Morph (140 - 300ms)
-        val capsuleExpand = ValueAnimator.ofInt(collapsedWidth, fullWidth).apply {
+        val capsuleExpand = ValueAnimator.ofFloat(collapsedScale, 1f).apply {
             duration = 160
             startDelay = 140
             interpolator = fastOutSlowIn
             addUpdateListener { anim ->
-                val w = anim.animatedValue as Int
-                frameView.layoutParams.width = w
-                frameView.requestLayout()
+                frameView.scaleX = anim.animatedValue as Float
             }
         }
 
@@ -490,26 +562,22 @@ class AlertSliderDialog(private val context: Context) :
             glowView.alpha = 0f
             glowView.scaleX = 0.94f
             glowView.scaleY = 0.94f
-            updateGlowShape(collapsedWidth)
+            updateGlowShape(fullWidth)
 
-            val glowExpand = ValueAnimator.ofInt(collapsedWidth, fullWidth).apply {
+            glowView.pivotX = if (flip) fullWidth.toFloat() else 0f
+            glowView.pivotY = glowView.height / 2f
+            glowView.scaleX = collapsedScale
+            val glowExpand = ValueAnimator.ofFloat(collapsedScale, 1f).apply {
                 duration = 160
                 startDelay = 175
                 interpolator = fastOutSlowIn
                 addUpdateListener { anim ->
-                    val w = anim.animatedValue as Int
-                    updateGlowShape(w)
+                    glowView.scaleX = anim.animatedValue as Float
                 }
             }
 
             val strengthFactor = (glowStrengthPercent / 100f).coerceIn(0.1f, 1.0f)
             val glowAlpha = ObjectAnimator.ofFloat(glowView, View.ALPHA, 0f, 0.55f * strengthFactor, 0.45f * strengthFactor).apply {
-                duration = 160
-                startDelay = 175
-                interpolator = fastOutSlowIn
-            }
-
-            val glowScaleX = ObjectAnimator.ofFloat(glowView, View.SCALE_X, 0.94f, 1.06f, 1.00f).apply {
                 duration = 160
                 startDelay = 175
                 interpolator = fastOutSlowIn
@@ -523,7 +591,6 @@ class AlertSliderDialog(private val context: Context) :
 
             animList.add(glowExpand)
             animList.add(glowAlpha)
-            animList.add(glowScaleX)
             animList.add(glowScaleY)
         } else {
             glowView.visibility = View.GONE
@@ -531,17 +598,13 @@ class AlertSliderDialog(private val context: Context) :
         }
 
         // Phase 5: Micro Inertia Settle (300 - 340ms) - 100% -> 101% -> 99.8% -> 100%
-        val settleAnim = ValueAnimator.ofInt(fullWidth, (fullWidth * 1.01f).toInt(), (fullWidth * 0.998f).toInt(), fullWidth).apply {
+        val settleAnim = ValueAnimator.ofFloat(1f, 1.01f, 0.998f, 1f).apply {
             duration = 40
             startDelay = 300
             interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
             addUpdateListener { anim ->
-                val w = anim.animatedValue as Int
-                frameView.layoutParams.width = w
-                frameView.requestLayout()
-                if (isGlowEnabled) {
-                    updateGlowShape(w)
-                }
+                frameView.scaleX = anim.animatedValue as Float
+                if (isGlowEnabled) glowView.scaleX = frameView.scaleX
             }
         }
 
@@ -560,6 +623,7 @@ class AlertSliderDialog(private val context: Context) :
 
         val currentWidth = frameView.width
         val collapsedWidth = 48.toPx()
+        val collapsedScale = (collapsedWidth.toFloat() / currentWidth).coerceAtMost(1f)
         val fastOutLinearIn = PathInterpolator(0.4f, 0f, 1f, 1f)
 
         // Exit Phase 1: Text Fade (0 - 120ms)
@@ -573,14 +637,12 @@ class AlertSliderDialog(private val context: Context) :
         }
 
         // Exit Phase 2: Capsule Collapse (100 - 260ms)
-        val capsuleCollapse = ValueAnimator.ofInt(currentWidth, collapsedWidth).apply {
+        val capsuleCollapse = ValueAnimator.ofFloat(1f, collapsedScale).apply {
             duration = 160
             startDelay = 100
             interpolator = fastOutLinearIn
             addUpdateListener { anim ->
-                val w = anim.animatedValue as Int
-                frameView.layoutParams.width = w
-                frameView.requestLayout()
+                frameView.scaleX = anim.animatedValue as Float
             }
         }
 
@@ -622,13 +684,12 @@ class AlertSliderDialog(private val context: Context) :
             }
             animList.add(blurCollapse)
 
-            val glowCollapse = ValueAnimator.ofInt(currentWidth, collapsedWidth).apply {
+            val glowCollapse = ValueAnimator.ofFloat(1f, collapsedScale).apply {
                 duration = 160
                 startDelay = 135
                 interpolator = fastOutLinearIn
                 addUpdateListener { anim ->
-                    val w = anim.animatedValue as Int
-                    updateGlowShape(w)
+                    glowView.scaleX = anim.animatedValue as Float
                 }
             }
 
@@ -662,29 +723,24 @@ class AlertSliderDialog(private val context: Context) :
     }
 
     private fun updateWidthAnimated(targetWidth: Int) {
-        if (frameView.width == targetWidth) {
-            animateVenomIconMorph()
-            return
-        }
-        val venomInterpolator = PathInterpolator(0.175f, 0.885f, 0.32f, 1.275f)
-        ValueAnimator.ofInt(frameView.width, targetWidth).apply {
-            duration = 280
-            interpolator = venomInterpolator
-            addUpdateListener { anim ->
-                val w = anim.animatedValue as Int
-                frameView.layoutParams.width = w
-                frameView.requestLayout()
-                if (isGlowEnabled) {
-                    updateGlowShape(w)
-                }
-            }
-            start()
+        // Resize the wrap-content overlay once, then animate only properties.
+        // Resizing layoutParams on every frame makes BLAST reject buffers while
+        // the TYPE_VOLUME_OVERLAY surface is being reconfigured.
+        if (frameView.width != targetWidth) {
+            frameView.layoutParams.width = targetWidth
+            frameView.requestLayout()
+            if (isGlowEnabled) updateGlowShape(targetWidth)
         }
 
         // Venom Liquid Squeeze on Capsule Container
-        ObjectAnimator.ofFloat(frameView, View.SCALE_Y, 1.0f, 0.88f, 1.06f, 1.0f).apply {
+        val scaleAnimator = ObjectAnimator.ofFloat(frameView, View.SCALE_Y, 1.0f, 0.88f, 1.06f, 1.0f).apply {
             duration = 320
             interpolator = OvershootInterpolator(2.0f)
+        }
+
+        contentAnimatorSet?.cancel()
+        contentAnimatorSet = AnimatorSet().apply {
+            playTogether(scaleAnimator)
             start()
         }
 
@@ -706,6 +762,8 @@ class AlertSliderDialog(private val context: Context) :
     }
 
     private fun updateBlurBackground(blurPopup: Boolean, nightMode: Boolean) {
+        blurDrawable?.setBlurRadius(0)
+        blurDrawable = null
         dialogView.background = null
         dialogView.elevation = 0f
         dialogView.clipToOutline = false
@@ -858,10 +916,7 @@ class AlertSliderDialog(private val context: Context) :
             if (!isShowing) {
                 super.show()
             }
-            frameView.post {
-                animateEntrance()
-                triggerGlowBreathing()
-            }
+            scheduleEntrance()
         } else if (isShowing) {
             frameView.measure(
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -885,7 +940,7 @@ class AlertSliderDialog(private val context: Context) :
         val rawEmoji = posKey?.let { Settings.System.getString(resolver, "config_emoji_$it") }
         val emoji = rawEmoji?.takeIf { it.isNotEmpty() }
 
-        (iconView.drawable as? AnimatedVectorDrawable)?.stop()
+        stopIconAnimation()
 
         when {
             emoji != null -> {
@@ -933,13 +988,10 @@ class AlertSliderDialog(private val context: Context) :
             iconView.setImageResource(animDrawableRes)
             iconView.setColorFilter(iconColor)
             (iconView.drawable as? AnimatedVectorDrawable)?.let { avd ->
-                avd.clearAnimationCallbacks()
-                avd.registerAnimationCallback(object : Animatable2.AnimationCallback() {
-                    override fun onAnimationEnd(drawable: Drawable) {
-                        iconView.post { avd.start() }
-                    }
-                })
-                avd.start()
+                // The vector resources that are meant to loop declare their own
+                // repeatCount. One-shot vectors must not be turned into persistent
+                // loops by a callback, especially while this dialog is retained.
+                if (isShowing) avd.start()
             }
         } else {
             iconView.setImageResource(staticDrawableRes)
@@ -956,7 +1008,8 @@ class AlertSliderDialog(private val context: Context) :
         val scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0.4f, 1.15f, 0.95f, 1f)
         val alpha = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f)
 
-        AnimatorSet().apply {
+        emojiAnimator?.cancel()
+        emojiAnimator = AnimatorSet().apply {
             playTogether(scaleX, scaleY, alpha)
             duration = 400
             interpolator = OvershootInterpolator(1.0f)

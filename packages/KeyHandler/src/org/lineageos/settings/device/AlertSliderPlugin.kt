@@ -82,6 +82,8 @@ class AlertSliderPlugin : OverlayPlugin {
     }
 
     override fun onDestroy() {
+        handler.removeCallbacksAndMessages(null)
+        handler.dismissDialog()
         pluginContext.unregisterReceiver(updateReceiver)
     }
 
@@ -176,6 +178,7 @@ class AlertSliderPlugin : OverlayPlugin {
                 val wasShowing = showing
 
                 showing = false
+                dialog.dismiss()
                 dialog = AlertSliderDialog(context)
                 lastInfo?.let { dialog.setState(it.position, it.mode) }
 
@@ -188,6 +191,11 @@ class AlertSliderPlugin : OverlayPlugin {
                 currSmallestWidth = smallestWidth
                 currUIMode = uiMode
             }
+        }
+
+        fun dismissDialog() {
+            showing = false
+            dialog.dismiss()
         }
 
         private fun launchDozePulse() {
