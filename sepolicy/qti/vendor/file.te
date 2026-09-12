@@ -95,6 +95,9 @@ type sysfs_torch, fs_type, sysfs_type;
 type sysfs_kgsl_gpuclk, fs_type, sysfs_type;
 type sysfs_thermal_powertools, fs_type, sysfs_type;
 
+# PowerTools - KProfiles kernel mode and freq ratio
+type sysfs_kprofiles, fs_type, sysfs_type;
+
 # Ultrasound
 type vendor_proc_ultrasound, fs_type, proc_type;
 

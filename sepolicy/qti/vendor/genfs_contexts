@@ -103,6 +103,9 @@ genfscon sysfs /class/kgsl/kgsl-3d0/devfreq/min_freq                            
 genfscon sysfs /class/kgsl/kgsl-3d0/devfreq/max_freq                                    u:object_r:sysfs_kgsl_gpuclk:s0
 genfscon sysfs /class/kgsl/kgsl-3d0/devfreq/cur_freq                                    u:object_r:sysfs_kgsl_gpuclk:s0
 
+# PowerTools - KProfiles mode and freq ratio
+genfscon sysfs /kernel/kprofiles    u:object_r:sysfs_kprofiles:s0
+
 # PowerTools - Thermal zone for skin temp (Auto Thermal mode)
 # Ultrasound
 genfscon proc /ultrasound    u:object_r:vendor_proc_ultrasound:s0
