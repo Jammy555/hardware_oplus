@@ -54,6 +54,10 @@ allow system_app vendor_sysfs_kgsl:{ file lnk_file } r_file_perms;
 # System Monitor Widget - /proc/meminfo (swap stats)
 allow system_app proc_meminfo:file { read open getattr };
 
+# PowerTools - Network Kernel Tuning (TCP Congestion Control & PLB)
+allow system_app proc_net:dir search;
+allow system_app proc_net:file rw_file_perms;
+
 # Binder calls to HALs
 allow system_app hal_audio_default:binder call;
 allow system_app hal_bootctl_default:binder call;
