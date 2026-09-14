@@ -98,6 +98,9 @@ type sysfs_thermal_powertools, fs_type, sysfs_type;
 # PowerTools - KProfiles kernel mode and freq ratio
 type sysfs_kprofiles, fs_type, sysfs_type;
 
+# PowerTools - Storage I/O scheduler
+type sysfs_io_sched, fs_type, sysfs_type;
+
 # Ultrasound
 type vendor_proc_ultrasound, fs_type, proc_type;
 
