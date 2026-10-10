@@ -1,9 +1,10 @@
 package com.oplus.osense;
 
 import android.content.Context;
+import android.os.Bundle;
+
 import com.oplus.osense.eventinfo.EventConfig;
 import com.oplus.osense.eventinfo.OsenseEventCallback;
-import android.os.Bundle;
 import com.oplus.osense.task.BgRunningCallback;
 
 public class OsenseResEventClient {
@@ -17,26 +18,20 @@ public class OsenseResEventClient {
         return sInstance;
     }
 
-    public int registerEventCallback(OsenseEventCallback callback, EventConfig eventConfig) {
-        return 0;
+    public int registerEventCallback(OsenseEventCallback callback, EventConfig config) {
+        return -1;
     }
 
-    public int unregisterEventCallback(OsenseEventCallback callback, EventConfig eventConfig) {
-        return 0;
+    public int unregisterEventCallback(OsenseEventCallback callback) {
+        return -1;
     }
 
-    public void requestSceneAction(Bundle bundle) {
-        return;
-    }
+    public void requestSceneAction(Bundle bundle) {}
 
-    public int requestInstantCpuLoad() {
-        return 0;
-    }
+    public void startBackgroundRunning(Context context, int taskType,
+            BgRunningCallback callback) {}
 
-    public void startBackgroundRunning(Context context, int type, BgRunningCallback callback) {
-    }
-
-    public boolean stopBackgroundRunning(Context context, int type) {
+    public boolean stopBackgroundRunning(Context context, int taskType) {
         return false;
     }
 }

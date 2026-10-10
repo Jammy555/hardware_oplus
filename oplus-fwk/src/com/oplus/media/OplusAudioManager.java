@@ -1,22 +1,15 @@
 package com.oplus.media;
 
 public class OplusAudioManager {
-    private static final String TAG = "OplusAudioManager";
 
-    private OplusAudioManager() {
-    }
-
-    private static final class InstanceHolder {
-        private static final OplusAudioManager INSTANCE = new OplusAudioManager();
-
-        private InstanceHolder() {
-        }
-    }
+    private static OplusAudioManager sInstance;
 
     public static OplusAudioManager getInstance() {
-        return new OplusAudioManager();
+        if (sInstance == null) {
+            sInstance = new OplusAudioManager();
+        }
+        return sInstance;
     }
 
-    public void setRingerModeInternal(int ringerMode) {
-    }
+    public void setRingerModeInternal(int ringerMode) {}
 }

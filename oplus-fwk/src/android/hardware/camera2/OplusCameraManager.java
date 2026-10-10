@@ -14,6 +14,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.util.Log;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -184,6 +185,7 @@ public final class OplusCameraManager implements IOplusCameraManager {
         if (context == null) {
             throw new IllegalArgumentException("context was null");
         }
+        context.enforceCallingOrSelfPermission(PERMISSION_SAFE_CAMERA, TAG);
         try {
             OplusCameraManagerGlobal.get().sendOplusExtCamCmd(context.getOpPackageName(), cmd, param);
         } catch (CameraAccessException e) {
@@ -393,31 +395,6 @@ public final class OplusCameraManager implements IOplusCameraManager {
             e.printStackTrace();
         } catch (RemoteException e2) {
             e2.printStackTrace();
-        }
-    }
-
-    public static <T> T metaDataValueConvert(CaptureResult.Key<T> key, int i, byte[] bArr) {
-        final String TAG = "OplusCameraManager";
-        try {
-            T result = (T) MarshalRegistry.getMarshaler(key.getNativeKey().getTypeReference(), i)
-                    .unmarshal(ByteBuffer.wrap(bArr).order(ByteOrder.nativeOrder()));
-            android.util.Log.d(TAG, "metaDataValueConvert OK");
-            return result;
-        } catch (Throwable t) {
-            android.util.Log.e(TAG, "metaDataValueConvert FAIL");
-            throw t; // rethrow the original exception
-        }
-    }
-
-    public static int getMetadataTag(CaptureResult.Key key) {
-        final String TAG = "OplusCameraManager";
-        try {
-            int tag = key.getNativeKey().getTag();
-            android.util.Log.d(TAG, "getMetadataTag OK");
-            return tag;
-        } catch (Throwable t) {
-            android.util.Log.e(TAG, "getMetadataTag FAIL");
-            throw t;
         }
     }
 
@@ -892,5 +869,21 @@ public final class OplusCameraManager implements IOplusCameraManager {
         public void binderDied() {
             this.mRemote = null;
         }
+    }
+
+    public static int getMetadataTag(CaptureResult.Key key) {
+        if (key != null) {
+            return key.getNativeKey().getTag();
+        }
+        return -1;
+    }
+
+    public static <T> T metaDataValueConvert(CaptureResult.Key<T> key, int nativeType,
+            byte[] values) {
+        if (key == null || values == null) {
+            return null;
+        }
+        return MarshalRegistry.getMarshaler(key.getNativeKey().getTypeReference(), nativeType)
+                .unmarshal(ByteBuffer.wrap(values).order(ByteOrder.nativeOrder()));
     }
 }

@@ -1,19 +1,14 @@
 package com.oplus.wrapper.hardware.devicestate;
 
-/* loaded from: classes.dex */
 public final class DeviceState {
-    private android.hardware.devicestate.DeviceState mInnerDeviceState;
+
+    private final android.hardware.devicestate.DeviceState mDeviceState;
 
     DeviceState(android.hardware.devicestate.DeviceState deviceState) {
-        this.mInnerDeviceState = null;
-        this.mInnerDeviceState = deviceState;
+        mDeviceState = deviceState;
     }
 
     public int getIdentifier() {
-        return this.mInnerDeviceState.getIdentifier();
-    }
-
-    android.hardware.devicestate.DeviceState getDeviceState() {
-        return this.mInnerDeviceState;
+        return mDeviceState.getIdentifier();
     }
 }

@@ -4,7 +4,14 @@ import java.util.HashSet;
 
 public class EventConfig {
 
-    public EventConfig(HashSet<Integer> events) {}
+    private HashSet<Integer> mEventSet;
+    private HashSet<OsenseConfig> mOsenseConfigSet;
 
-    public void setOsenseConfigSet(HashSet<String> hashSet) {}
+    public EventConfig(HashSet<Integer> eventSet) {
+        mEventSet = eventSet;
+    }
+
+    public void setOsenseConfigSet(HashSet<OsenseConfig> osenseConfigSet) {
+        mOsenseConfigSet = osenseConfigSet;
+    }
 }
