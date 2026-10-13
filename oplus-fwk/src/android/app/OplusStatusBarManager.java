@@ -7,4 +7,6 @@ public class OplusStatusBarManager {
     public boolean getTopIsFullscreen() {
         return false;
     }
+
+    public void topIsFullscreen(boolean p0) throws android.os.RemoteException { }
 }

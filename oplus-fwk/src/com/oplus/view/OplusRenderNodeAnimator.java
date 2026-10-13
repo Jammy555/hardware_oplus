@@ -159,4 +159,7 @@ public class OplusRenderNodeAnimator {
         @Override
         public void setInterpolator(TimeInterpolator value) {}
     }
+
+    public static android.animation.Animator createRenderValueAnimator(android.animation.Animator p0, android.view.View p1) { return null; }
+    public static long getFrameNumber(android.animation.Animator p0) { return 0L; }
 }

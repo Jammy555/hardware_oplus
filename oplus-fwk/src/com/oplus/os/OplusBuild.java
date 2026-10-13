@@ -15,4 +15,6 @@ public class OplusBuild {
         public static final int SDK_SUB_VERSION = 2;
     }
 
+    public static java.lang.String getDeviceName() { return null; }
+    public static java.lang.String getDeviceName(android.content.Context p0) { return null; }
 }

@@ -14,4 +14,6 @@ public class EventConfig {
     public void setOsenseConfigSet(HashSet<OsenseConfig> osenseConfigSet) {
         mOsenseConfigSet = osenseConfigSet;
     }
+
+    public java.util.Set<java.lang.Integer> getEventSet() { return null; }
 }

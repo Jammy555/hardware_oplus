@@ -16,4 +16,8 @@ public class OplusCustomizeRestrictionManager {
     public boolean getForbidRecordScreenState() {
         return false;
     }
+
+    public boolean isFloatTaskDisabled(android.content.ComponentName p0) { return false; }
+    public boolean isPrivateSafeDisabled() { return false; }
+    public boolean setFloatTaskDisabled(android.content.ComponentName p0, boolean p1) { return false; }
 }

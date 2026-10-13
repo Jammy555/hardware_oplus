@@ -29,4 +29,10 @@ public class OplusMaterialUtil {
     public static boolean setShadowParams(View view, OplusMaterialShadowParams params) {
         return false;
     }
+
+    public static boolean setBaseParams(android.view.View p0, com.oplus.view.material.OplusMaterialBaseParams p1) { return false; }
+    public static boolean setMetaBallParams(android.view.View p0, com.oplus.view.material.OplusMaterialMetaBallParams p1) { return false; }
+
+    public static boolean setMetaBallChain(android.view.View p0, java.util.Set<android.view.View> p1) { return false; }
+    public static boolean setMetaBallChain(java.util.Set<android.view.View> p0) { return false; }
 }

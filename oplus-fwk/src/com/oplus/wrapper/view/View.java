@@ -15,4 +15,6 @@ public class View {
         }
         return new ViewRootImpl(viewRootImpl);
     }
+
+    public boolean isVisibleToUser() { return false; }
 }

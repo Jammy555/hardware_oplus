@@ -46,4 +46,16 @@ public class OplusActivityManager {
             OplusComplexSceneObserver observer) {
         return false;
     }
+
+    public static java.util.List<android.app.ActivityManager.RunningTaskInfo> getFilteredTasks(int p0, boolean p1) { return null; }
+    public java.util.List<java.lang.String> getTaskPkgList(int p0) throws android.os.RemoteException { return null; }
+    public void handleAppFromControlCenter(java.lang.String p0, int p1) throws android.os.RemoteException { }
+    public boolean isAppCallRefuseMode() throws android.os.RemoteException { return false; }
+    public void setAppCallRefuseMode(boolean p0) throws android.os.RemoteException { }
+    public void setChildSpaceMode(boolean p0) throws android.os.RemoteException { }
+    public void setPreventIndulgeController(com.oplus.app.IOplusAppStartController p0) throws android.os.RemoteException { }
+
+    public void addBackgroundRestrictedInfo(String p0, java.util.List<String> p1) { }
+    public void addPreventIndulgeList(java.util.List<String> p0) { }
+    public void setAllowLaunchApps(java.util.List<String> p0) { }
 }

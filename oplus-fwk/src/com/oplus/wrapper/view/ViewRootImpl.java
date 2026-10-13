@@ -19,4 +19,6 @@ public class ViewRootImpl {
     public void registerRtFrameCallback(HardwareRenderer.FrameDrawingCallback callback) {
         mViewRootImpl.registerRtFrameCallback(callback::onFrameDraw);
     }
+
+    public void mergeWithNextTransaction(android.view.SurfaceControl.Transaction p0, long p1) { }
 }

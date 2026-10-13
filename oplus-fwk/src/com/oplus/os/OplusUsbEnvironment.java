@@ -155,4 +155,9 @@ public class OplusUsbEnvironment extends Environment {
         }
         return "mounted".equals(sm.getVolumeState(path));
     }
+
+    public static java.lang.String getMultiappSdDirectory() { return null; }
+    public static int getPathType(android.content.Context p0, java.lang.String p1) { return 0; }
+    public static boolean isExternalSDRemoved(android.content.Context p0) { return false; }
+    public static boolean isNestMounted() { return false; }
 }

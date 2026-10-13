@@ -42,4 +42,10 @@ public class OplusAsyncAnimatorUtils {
     public static boolean setTranslationY(View view, float value) {
         return apply(view, () -> view.setTranslationY(value));
     }
+
+    public static boolean setAlpha(android.graphics.RenderNode p0, float p1) { return false; }
+    public static boolean setOutlineRoundRect(android.view.View p0, android.graphics.Rect p1, float p2, float p3) { return false; }
+    public static boolean setRotationX(android.view.View p0, float p1) { return false; }
+    public static boolean setRotationY(android.view.View p0, float p1) { return false; }
+    public static boolean setTranslationZ(android.view.View p0, float p1) { return false; }
 }

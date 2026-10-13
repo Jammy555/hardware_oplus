@@ -37,4 +37,6 @@ public class OplusActivityTaskManager {
             throws RemoteException {
         return false;
     }
+
+    public void invalidateSnapshotForSurfacePreview(java.lang.String p0) throws android.os.RemoteException { }
 }

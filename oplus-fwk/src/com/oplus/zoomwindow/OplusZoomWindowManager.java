@@ -33,4 +33,6 @@ public class OplusZoomWindowManager {
     public int startZoomWindow(Intent intent, Bundle options, int userId, String callPkg) {
         return -1;
     }
+
+    public boolean isSupportZoomWindowMode() { return false; }
 }

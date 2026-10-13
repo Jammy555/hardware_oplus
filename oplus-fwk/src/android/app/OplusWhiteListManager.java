@@ -20,4 +20,7 @@ public class OplusWhiteListManager {
             IOplusProtectConnection connection) {}
 
     public void removeStageProtectInfo(String pkg) {}
+
+    public java.util.ArrayList<java.lang.String> getGlobalWhiteList() { return null; }
+    public java.util.ArrayList<java.lang.String> getGlobalWhiteList(int p0) { return null; }
 }

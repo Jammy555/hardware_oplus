@@ -36,4 +36,16 @@ public class OplusZoomWindowInfo implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {}
 
     public void readFromParcel(Parcel in) {}
+
+    public java.lang.String cpnName;
+    public android.os.Bundle extension;
+    public int inputMethodType;
+    public boolean inputShow;
+    public int lastExitMethod;
+    public java.lang.String lockPkg;
+    public int lockUserId;
+    public int rotation;
+    public java.lang.String zoomPkg;
+    public android.graphics.Rect zoomRect;
+    public int zoomUserId;
 }
