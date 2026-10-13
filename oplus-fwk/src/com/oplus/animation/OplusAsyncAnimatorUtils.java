@@ -43,9 +43,37 @@ public class OplusAsyncAnimatorUtils {
         return apply(view, () -> view.setTranslationY(value));
     }
 
-    public static boolean setAlpha(android.graphics.RenderNode p0, float p1) { return false; }
-    public static boolean setOutlineRoundRect(android.view.View p0, android.graphics.Rect p1, float p2, float p3) { return false; }
-    public static boolean setRotationX(android.view.View p0, float p1) { return false; }
-    public static boolean setRotationY(android.view.View p0, float p1) { return false; }
-    public static boolean setTranslationZ(android.view.View p0, float p1) { return false; }
+    public static boolean setAlpha(android.graphics.RenderNode node, float value) {
+        return node != null && node.setAlpha(value);
+    }
+
+    public static boolean setOutlineRoundRect(View view, android.graphics.Rect rect, float radius,
+            float alpha) {
+        if (rect == null) {
+            return false;
+        }
+        final android.graphics.Rect bounds = new android.graphics.Rect(rect);
+        return apply(view, () -> {
+            view.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                @Override
+                public void getOutline(View v, android.graphics.Outline outline) {
+                    outline.setRoundRect(bounds, radius);
+                    outline.setAlpha(alpha);
+                }
+            });
+            view.invalidateOutline();
+        });
+    }
+
+    public static boolean setRotationX(View view, float value) {
+        return apply(view, () -> view.setRotationX(value));
+    }
+
+    public static boolean setRotationY(View view, float value) {
+        return apply(view, () -> view.setRotationY(value));
+    }
+
+    public static boolean setTranslationZ(View view, float value) {
+        return apply(view, () -> view.setTranslationZ(value));
+    }
 }

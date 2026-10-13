@@ -16,5 +16,8 @@ public class View {
         return new ViewRootImpl(viewRootImpl);
     }
 
-    public boolean isVisibleToUser() { return false; }
+
+    public boolean isVisibleToUser() {
+        return mView.isVisibleToUser();
+    }
 }
