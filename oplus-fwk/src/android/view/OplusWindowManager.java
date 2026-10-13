@@ -16,4 +16,7 @@ public class OplusWindowManager {
     public boolean isInputShow() throws android.os.RemoteException { return false; }
     public void registerOplusWindowStateObserver(android.view.IOplusWindowStateObserver p0) throws android.os.RemoteException { }
     public void unregisterOplusWindowStateObserver(android.view.IOplusWindowStateObserver p0) throws android.os.RemoteException { }
+
+    public void getFocusedWindowFrame(android.graphics.Rect p0) throws android.os.RemoteException { }
+    public java.util.List<android.graphics.Rect> getSplitAreaRegion() throws android.os.RemoteException { return new java.util.ArrayList<>(); }
 }
