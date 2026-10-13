@@ -160,6 +160,9 @@ public class OplusRenderNodeAnimator {
         public void setInterpolator(TimeInterpolator value) {}
     }
 
-    public static android.animation.Animator createRenderValueAnimator(android.animation.Animator p0, android.view.View p1) { return null; }
+    // OPLUS moves the value animator to the render thread; here it runs where it was created.
+    public static Animator createRenderValueAnimator(Animator animator, View view) {
+        return animator;
+    }
     public static long getFrameNumber(android.animation.Animator p0) { return 0L; }
 }
