@@ -29,6 +29,7 @@ vendor.silead.                                 u:object_r:vendor_fingerprint_pro
 persist.vendor.rpmb.enable.state    u:object_r:vendor_oplus_rpmb_enable_state_prop:s0
 
 # Media
+vendor.media.vpp.                  u:object_r:vendor_video_prop:s0
 vendor.oplus.media.vpp.osie_sr.    u:object_r:vendor_video_prop:s0
 vendor.oplus.video.dump.output     u:object_r:vendor_video_prop:s0
 
