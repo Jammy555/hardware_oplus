@@ -1,0 +1,2 @@
+dontaudit opluscamera_app mnt_vendor_file:dir search;
+dontaudit opluscamera_app adsprpcd_file:file r_file_perms;
