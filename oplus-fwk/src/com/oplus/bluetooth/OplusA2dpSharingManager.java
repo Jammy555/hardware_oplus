@@ -190,6 +190,26 @@ public class OplusA2dpSharingManager {
         }
     }
 
+    public boolean isA2dpSharingEnabled() {
+        try {
+            IOplusA2dpSharing service = getService();
+            return service != null && service.isA2dpSharingEnabled(mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, "isA2dpSharingEnabled failed", e);
+            return false;
+        }
+    }
+
+    public boolean setA2dpSharingEnabled(boolean enabled) {
+        try {
+            IOplusA2dpSharing service = getService();
+            return service != null && service.setA2dpSharingEnabled(enabled, mAttributionSource);
+        } catch (RemoteException e) {
+            Log.e(TAG, "setA2dpSharingEnabled failed", e);
+            return false;
+        }
+    }
+
     public boolean isA2dpSharingAvailable() {
         try {
             IOplusA2dpSharing service = getService();
